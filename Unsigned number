@@ -1,0 +1,116 @@
+#include<stdio.h>
+#include<ctype.h>
+#include<math.h>
+#define LETTER		0
+#define DIGIT		1
+#define POINT		2
+#define OTHER		3
+#define POWER		4
+#define PLUS		5
+#define  MINUS		6
+#define ClassNo 100 
+#define ClassOther 200
+#define EndState -1
+int w, n, p, e, d;
+int Class;
+int ICON;
+float FCON;
+int ForI;
+static int CurrentState;
+
+int GetChar(void);
+int EXECUTE(int, int);
+int LEX(void);
+int HandleOtherWord(void)
+{
+	return ClassOther;
+}
+int HandleError(void)
+{
+	printf("Error!\n");
+	return 0;
+}
+void main()
+{
+	LEX();
+	if (ForI == 1) printf("%d\n",ICON);
+	else printf("%f\n",FCON);
+}
+int GetChar(void)
+{
+	int c;
+	c = getchar();
+	if (c >= '0'&&c <= '9') { d = c - '0'; return DIGIT; }
+	if (c == '.') return POINT;
+	if (c == 'E' || c == 'e') return POWER;
+	if (c == '+') return PLUS;
+	if (c == '-') return MINUS;
+	return OTHER;
+}
+int EXECUTE(int state, int symbol)
+{
+	switch (state)
+	{
+	case 0: switch (symbol)
+				{
+				case DIGIT:n = 0; p = 0; e = 1; w = d; CurrentState = 1; Class = ClassNo; break;
+				case POINT:w = 0; n = 0; p = 0; e = 1; CurrentState = 3; Class = ClassNo; break;
+				default: HandleOtherWord(); Class = ClassOther;
+					CurrentState = EndState;
+				}
+			break;
+	case 1: switch (symbol)
+				{
+				case DIGIT:w = w * 10 + d; break;
+				case POINT:CurrentState = 2;  break;
+				case POWER:CurrentState = 4; break;
+				default: ICON = w; CurrentState = EndState; ForI = 1;
+				}
+			break;
+	case 2: switch (symbol)
+				{
+				case DIGIT:n++; w = w * 10 + d; break;
+				case POWER:CurrentState = 4; break;
+				default: FCON = w * pow(10, e*p - n); CurrentState = EndState; ForI = 0;
+				}
+			break;
+	case 3:switch (symbol)
+				{
+				case DIGIT:n++; w = w * 10 + d; CurrentState = 2; break;
+				default: HandleError(); CurrentState = EndState;
+				}
+		   break;
+	case 4:switch (symbol)
+				{
+				case DIGIT:p = p * 10 + d; CurrentState = 6; break;
+				case MINUS:e = -1; CurrentState = 5; break;
+				case PLUS:CurrentState = 5; break;
+				default:HandleError(); CurrentState = EndState;
+				}
+		   break;
+	case 5:switch (symbol)
+				{
+				case DIGIT:p = p * 10 + d; CurrentState = 6; break;
+				default:HandleError(); CurrentState = EndState;
+				}
+		   break;
+	case 6:switch (symbol)
+				{
+				case DIGIT:p = p * 10 + d; break;
+				default:FCON = w * pow(10, e*p - n); CurrentState = EndState; ForI = 0;
+				}
+		   break;
+	}
+	return CurrentState;
+}
+int LEX(void)
+{
+	int ch;
+	CurrentState = 0;
+	while (CurrentState != EndState)
+	{
+		ch = GetChar();
+		EXECUTE(CurrentState, ch);
+	}
+	return Class;
+}
