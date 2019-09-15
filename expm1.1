@@ -1,0 +1,249 @@
+#include<stdio.h>
+#include<ctype.h>
+#include<math.h>
+#define LETTER	0
+#define DIGIT	1
+#define POINT	2
+#define OTHER	3
+#define POWER	4
+#define PLUS	5
+#define  MINUS	6
+#define ClassNo 100 
+#define ClassOther 200
+#define EndState -1
+int w, n, p, e, d;
+int Class;
+int ICON;
+float FCON;
+int ForI = 1000;
+static int CurrentState;
+
+int wordin[15];
+char cha;
+char lc1;
+char lc2;
+char nextcha;
+int type;
+int flag=5000;
+
+int GetChar(void);
+int EXECUTE(int, int);
+int LEX(FILE *fp);
+int HandleOtherWord(void);
+int HandleError(void);
+void IDorRE(FILE *fp);
+void Oper(FILE *fp);
+void Delete(FILE *fp);//删除注释
+
+void main()
+{
+
+	FILE *p;
+	p = fopen("test.txt", "r");
+	while ((cha = fgetc(p)) != EOF) {
+		if (cha == ' ') continue;
+		else if (cha <= '9'&&cha >= '0') type = 'n';
+		else if (cha <= 'z'&&cha >= 'a') type = 'a';
+		else if (cha == '<' || cha == '>' || cha == '=' || cha == '+' || cha == '-' || cha == '*' || cha == '/' || cha == ':' || cha == '&'|| cha == '|') type = 'o';
+		else if (cha == '#') type='d';
+		else printf("Error\n");
+
+		switch (type)
+		{
+		case 'n':LEX(p); break;
+		case 'a':IDorRE(p); break;
+		case 'o':Oper(p); break;
+		case 'd':Delete(p);break;
+		}
+	}
+}
+
+void Oper(FILE *fp)
+{//逻辑运算符加入& |
+	nextcha = fgetc(fp);
+	int len;
+	int sum;
+	if (nextcha == '>' || nextcha == '=') {
+		len = 2; sum = cha + nextcha;
+	}
+	else {
+		len = 1; sum = cha;
+	}
+	switch (len)
+	{
+	case 2 : switch (sum)
+	{
+	case 121:printf("(LE, )\n"); break;
+	case 122:printf("(NE, )\n"); break;
+	case 123:printf("(GE, )\n"); break;
+	case 119:printf("(IS, )\n"); break;
+	default:printf("Error!\n");
+	}
+	break;
+	case 1:switch (cha)
+	{//fgetc读取一个字节后，光标位置后移一个字节
+	case '+':printf("(PL, )\n"); break;
+	case '-':fseek(fp,-4,1); lc1=fgetc(fp); lc2=fgetc(fp);if(lc2=='='&& lc1!='>'&& lc1!='<'){flag=1; fseek(fp,2,1);} else {fseek(fp,2,1); printf("(MI, )\n");} break;
+	case '*':printf("(MU, )\n"); break;
+	case '/':printf("(DI, )\n"); break;
+	case '>':printf("(GT, )\n"); break;
+	case '<':printf("(LT, )\n"); break;
+	case '=':printf("(EQ, )\n"); break;
+	case '&':printf("(AN, )\n"); break;
+	case '|':printf("(OR, )\n"); break;
+	default:printf("Error!\n");
+	}
+	break;
+	}
+	if(len==2);
+	else if(nextcha==EOF);
+	else fseek(fp, -1, 1);
+}
+
+void IDorRE(FILE *fp)
+{
+	int i = 0;
+	for (int j = 0;; j++) {
+		if (((cha <= '9'&& cha >= '0') || (cha <= 'z'&& cha >= 'a'))&& cha != EOF)
+		{
+			wordin[i] = cha;
+			i++;
+			cha = fgetc(fp);
+		}
+		else break;
+	}
+	int sum=0;
+	int fla=3000;
+	for (j = 0; j < i; j++) {
+		sum += wordin[j];
+	}
+	switch (sum)
+	{//关键字加入for do int
+	case 207:printf("(IF, )\n"); break;
+	case 430:printf("(THEN, )\n"); break;
+	case 425:printf("(ELSE, )\n"); break;
+	case 537:printf("(WHILE, )\n"); break;
+	case 517:printf("(BEGIN, )\n"); break;
+	case 311:printf("(END, )\n"); break;
+	case 211:printf("(DO, )\n"); break;
+	case 331:printf("(INT, )\n"); break;
+	case 327:printf("(FOR, )\n"); break;
+	default:printf("(ID,"); fla = 1;
+	}
+	if (fla == 1) {
+		for (int j = 0; j < i; j++) {
+			printf("%c", wordin[j]);
+		}
+		printf(")\n");
+	}
+	if(cha!=EOF)
+		fseek(fp, -1, 1);
+}
+
+int GetChar(int j)
+{
+	int c;
+	c = wordin[j];
+	if (c >= '0'&&c <= '9') { d = c - '0'; return DIGIT; }
+	if (c == '.') return POINT;
+	if (c == 'E' || c == 'e') return POWER;
+	if (c == '+') return PLUS;
+	if (c == '-') return MINUS;
+	return OTHER;
+}
+int EXECUTE(int state, int symbol)
+{
+	switch (state)
+	{
+	case 0: switch (symbol)
+	{
+	case DIGIT:n = 0; p = 0; e = 1; w = d; CurrentState = 1; Class = ClassNo; break;
+	case POINT:w = 0; n = 0; p = 0; e = 1; CurrentState = 3; Class = ClassNo; break;
+	default: HandleOtherWord(); Class = ClassOther;
+		CurrentState = EndState;
+	}
+			break;
+	case 1: switch (symbol)
+	{
+	case DIGIT:w = w * 10 + d; break;
+	case POINT:CurrentState = 2;  break;
+	case POWER:CurrentState = 4; break;
+	default: ICON = w; CurrentState = EndState; if(flag==1) {ICON*=-1; flag=5000;} printf("(REAL,%d)\n", ICON);
+	}
+			break;
+	case 2: switch (symbol)
+	{
+	case DIGIT:n++; w = w * 10 + d; break;
+	case POWER:CurrentState = 4; break;
+	default: FCON = w * pow(10, e*p - n); CurrentState = EndState; if(flag==1) {FCON*=-1; flag=5000;} printf("(REAL,%f)\n", FCON);
+	}
+			break;
+	case 3:switch (symbol)
+	{
+	case DIGIT:n++; w = w * 10 + d; CurrentState = 2; break;
+	default: HandleError(); CurrentState = EndState;
+	}
+		   break;
+	case 4:switch (symbol)
+	{
+	case DIGIT:p = p * 10 + d; CurrentState = 6; break;
+	case MINUS:e = -1; CurrentState = 5; break;
+	case PLUS:CurrentState = 5; break;
+	default:HandleError(); CurrentState = EndState;
+	}
+		   break;
+	case 5:switch (symbol)
+	{
+	case DIGIT:p = p * 10 + d; CurrentState = 6; break;
+	default:HandleError(); CurrentState = EndState;
+	}
+		   break;
+	case 6:switch (symbol)
+	{
+	case DIGIT:p = p * 10 + d; break;
+	default:FCON = w * pow(10, e*p - n); CurrentState = EndState; if(flag==1) {FCON*=-1; flag=5000;} printf("(REAL,%f)\n", FCON);
+	}
+		   break;
+	}
+	return CurrentState;
+}
+int LEX(FILE *fp)
+{
+	int i = 0;
+	for (int j = 0;; j++) {
+		if ((cha <= '9'&&cha >= '0') || cha=='E'|| cha=='-'|| cha=='.')
+		{
+			wordin[i] = cha;
+			i++;
+			cha = fgetc(fp);
+		}
+		else break;
+	}
+	int ch;
+	CurrentState = 0;
+	j = 0;
+	while (CurrentState != EndState)
+	{
+		ch = GetChar(j);
+		EXECUTE(CurrentState, ch);
+		j++;
+	}
+	if(cha!=EOF)
+		fseek(fp, -1, 1);
+	return Class;
+}
+
+void Delete(FILE *fp)
+{
+	while(cha=fgetc(fp)!='#');
+}
+
+int HandleOtherWord(void)
+{
+	return ClassOther;
+}
+int HandleError(void)
+{
+	printf("Error!\n");
+	return 0;
+}
