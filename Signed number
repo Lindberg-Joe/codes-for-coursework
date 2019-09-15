@@ -91,6 +91,7 @@ void Oper(FILE *fp)
 	break;
 	}
 	if(len==2);
+	else if(nextcha==EOF);
 	else fseek(fp, -1, 1);
 }
 
