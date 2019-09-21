@@ -58,7 +58,7 @@ void main()
 		case 'n':if(cha=='0'){
 					fseek(p,-2,1);
 					lc1=fgetc(p); 
-					if(lc1=='='){
+					if(lc1=='='||lc1==' '){
 						 fseek(p,1,1);
 						 lc1=fgetc(p);
 						 if(lc1<='9'&&lc1>='1'){
@@ -222,7 +222,7 @@ int EXECUTE(int state, int symbol,FILE* fw)
 	case DIGIT:w = w * 10 + d; break;
 	case POINT:CurrentState = 2;  break;
 	case POWER:CurrentState = 4; break;
-	default: ICON = w; CurrentState = EndState; if(flag==1) {ICON*=-1; flag=5000;} printf("(REAL,%d)\n", ICON); fprintf(fw,"(REAL,%d)\n",ICON);
+	default: ICON = w; CurrentState = EndState; if(flag==1) {ICON*=-1; flag=5000;} printf("(INT,%d)\n", ICON); fprintf(fw,"(INT,%d)\n",ICON);
 	}
 			break;
 	case 2: switch (symbol)
@@ -301,3 +301,4 @@ int HandleError(void)
 	printf("Error!\n");
 	return 0;
 }
+
