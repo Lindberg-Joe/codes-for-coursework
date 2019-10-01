@@ -30,18 +30,29 @@ char *stri;
 int noteflag=5000;
 
 # define ID 0
+# define IF 1
+# define THEN 2
+# define ELSE 3
+# define WHILE 4
+# define BEGIN 5
+# define END 6
 # define INT 7
-# define LT 8
-# define LE 9
-# define EQ 10
-# define NE 11
-# define GT 12
-# define GE 13
+# define LT 10
+# define LE 11
+# define EQ 12
+# define NE 13
+# define GT 14
+# define GE 15
+# define IS 16
+# define PL 17
+# define MI 18
+# define MU 19
+# define DI 20
 
 /* 建立保留字表 */
 #define MAX_KEY_NUMBER 20  /*关键字的数量*/
 #define KEY_WORD_END "waiting for your expanding"  /*关键字结束标记*/
-char *KeyWordTable[MAX_KEY_NUMBER]={ "begin", "end", "if", "then", "else", KEY_WORD_END};
+char *KeyWordTable[MAX_KEY_NUMBER]={ "if", "then", "else", "while", "begin", "end" , KEY_WORD_END};
 /* 查保留字表，判断是否为关键字 */
 
 char TOKEN[20];
@@ -121,7 +132,11 @@ void scanner_example(FILE *fp,FILE *fw)
 					out(LT, " ");
 				}
 				break;
+			case ':': fseek(fp, 1, 1); out(IS, " "); break;
 			case '=': out(EQ, " "); break;
+			case '+': out(PL, " "); break;
+			case '*': out(MU, " "); break;
+			case '/': out(DI, " "); break;
 			case '>': ch = fgetc(fp);
 				if (ch == '=') out(GE, " ");
 				else
@@ -130,7 +145,7 @@ void scanner_example(FILE *fp,FILE *fw)
 					out(GT, " ");
 				}
 				break;
-			case '-':fseek(fp,-4,1); lc1=fgetc(fp); lc2=fgetc(fp);if(lc2=='='&& lc1!='>'&& lc1!='<'){flag=1; fseek(fp,2,1);} else {fseek(fp,2,1); printf("(MI, )\n"); stri="(MI, )\n"; fputs(stri,fw);} break;
+			case '-':fseek(fp,-4,1); lc1=fgetc(fp); lc2=fgetc(fp);if(lc2=='='&& lc1!='>'&& lc1!='<'){flag=1; fseek(fp,2,1);} else {fseek(fp,2,1); out(MI, " "); stri="(MI, )\n"; fputs(stri,fw);} break;
 			default: report_error(); break;
 			}
 	return;
@@ -256,6 +271,11 @@ void out(int a,char*wordin)
 		case NE:printf("(NE,%s)\n",wordin);break;
 		case GT:printf("(GT,%s)\n",wordin);break;
 		case GE:printf("(GE,%s)\n",wordin);break;
+		case IS:printf("(IS,%s)\n",wordin);break;
+		case PL:printf("(PL,%s)\n",wordin);break;
+		case MI:printf("(MI,%s)\n",wordin);break;
+		case MU:printf("(MU,%s)\n",wordin);break;
+		case DI:printf("(DI,%s)\n",wordin);break;
 	}
 }
 
@@ -273,4 +293,3 @@ int HandleError(void)
 	printf("Error\n");
 	return 0;
 }
-
