@@ -276,6 +276,12 @@ void out(int a,char*wordin)
 		case MI:printf("(MI,%s)\n",wordin);break;
 		case MU:printf("(MU,%s)\n",wordin);break;
 		case DI:printf("(DI,%s)\n",wordin);break;
+		case IF:printf("(IF,%s)\n",wordin);break;
+		case THEN:printf("(THEN,%s)\n",wordin);break;
+		case ELSE:printf("(ELSE,%s)\n",wordin);break;
+		case WHILE:printf("(WHILE,%s)\n",wordin);break;
+		case BEGIN:printf("(BEGIN,%s)\n",wordin);break;
+		case END:printf("(END,%s)\n",wordin);break;
 	}
 }
 
@@ -293,3 +299,4 @@ int HandleError(void)
 	printf("Error\n");
 	return 0;
 }
+
