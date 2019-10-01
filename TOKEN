@@ -1,0 +1,274 @@
+#include <stdio.h>
+#include <ctype.h>
+#include <string.h>
+#include<math.h>
+
+#define LETTER	0
+#define DIGIT	1
+#define POINT	2
+#define OTHER	3
+#define POWER	4
+#define PLUS	5
+#define  MINUS	6
+#define ClassNo 100 
+#define ClassOther 200
+#define EndState -1
+
+int w, n, p, e, d;
+int Class;
+int ICON;
+double FCON;
+int ForI = 1000;
+static int CurrentState;
+char lc1;
+char lc2;
+char nextcha;
+int type=5000;
+int flag=5000;
+int eflag=5000;
+char *stri;
+int noteflag=5000;
+
+# define ID 0
+# define INT 7
+# define LT 8
+# define LE 9
+# define EQ 10
+# define NE 11
+# define GT 12
+# define GE 13
+
+/* 建立保留字表 */
+#define MAX_KEY_NUMBER 20  /*关键字的数量*/
+#define KEY_WORD_END "waiting for your expanding"  /*关键字结束标记*/
+char *KeyWordTable[MAX_KEY_NUMBER]={ "begin", "end", "if", "then", "else", KEY_WORD_END};
+/* 查保留字表，判断是否为关键字 */
+
+char TOKEN[20];
+
+extern int lookup(char*);
+extern void out(int, char*);
+extern void report_error(void);
+void scanner_example(FILE *fp,FILE *fw);
+int GetChar(int j);
+int EXECUTE(int state, int symbol,FILE* fw);
+int LEX(FILE *fp,FILE *fw,char cha);
+void report_error();
+int lookup(char *token);
+void out(int a,char*wordin);
+int HandleOtherWord(void);
+int HandleError(void);
+
+void main()
+{
+	FILE *p,*w;
+	p=fopen("test.txt", "r");
+	w=fopen("out.txt", "w");
+	char fir;
+	while ((fir = fgetc(p)) != EOF) {
+/*		if (fir == ' '|| fir == '\n'|| fir == '\t') continue; else if(fir!='#') fseek(p,-1,1);
+		if(fir=='#') 
+		{
+			while(1)
+			{
+				fir = fgetc(p);
+				if(fir=='#') 
+					break;
+			}
+		}*/
+	//	if((fir = fgetc(p)) != EOF){
+			fseek(p,-1,1);
+			scanner_example(p,w);
+	//	}
+		//else {printf("Finish\n"); break;}
+	}
+	fclose(p);
+	fclose(w);
+}
+
+void scanner_example(FILE *fp,FILE *fw)
+{
+	char ch; int i, c;
+	ch = fgetc(fp);
+	if (ch>='a'&&ch<='z')  /*it must be a identifer!*/
+	{
+		TOKEN[0] = ch; ch = fgetc(fp); i = 1;
+		while ((ch >= 'a'&&ch <= 'z')|| (ch >= '0'&&ch <= '9'))
+		{
+			TOKEN[i] = ch; i++;
+				ch = fgetc(fp);
+		}
+		TOKEN[i] = '\0';
+			fseek(fp, -1, 1);  /* retract*/
+		c = lookup(TOKEN);
+		if (c == 0) out(ID, TOKEN); else out(c, " ");
+	}
+	else
+		if ((ch >= '0'&&ch <= '9')||ch == '.')
+		{
+			LEX(fp,fw,ch);
+		}
+		else
+			switch (ch)
+			{
+			case '<': ch = fgetc(fp);
+				if (ch == '=') out(LE, " ");
+				else if (ch == '>') out(NE, " ");
+				else
+				{
+					fseek(fp, -1, 1);
+					out(LT, " ");
+				}
+				break;
+			case '=': out(EQ, " "); break;
+			case '>': ch = fgetc(fp);
+				if (ch == '=') out(GE, " ");
+				else
+				{
+					fseek(fp, -1, 1);
+					out(GT, " ");
+				}
+				break;
+			case '-':fseek(fp,-4,1); lc1=fgetc(fp); lc2=fgetc(fp);if(lc2=='='&& lc1!='>'&& lc1!='<'){flag=1; fseek(fp,2,1);} else {fseek(fp,2,1); printf("(MI, )\n"); stri="(MI, )\n"; fputs(stri,fw);} break;
+			default: report_error(); break;
+			}
+	return;
+}
+
+int GetChar(int j)
+{
+	int c;
+	c = TOKEN[j];
+	if (c >= '0'&&c <= '9') { d = c - '0'; return DIGIT; }
+	if (c == '.') return POINT;
+	if (c == 'E' || c == 'e') return POWER;
+	if (c == '+') return PLUS;
+	if (c == '-') return MINUS;
+	return OTHER;
+}
+int EXECUTE(int state, int symbol,FILE* fw)
+{
+	switch (state)
+	{
+	case 0: switch (symbol)
+	{
+	case DIGIT:n = 0; p = 0; e = 1; w = d; CurrentState = 1; Class = ClassNo; break;
+	case POINT:w = 0; n = 0; p = 0; e = 1; CurrentState = 3; Class = ClassNo; break;
+	default: HandleOtherWord(); Class = ClassOther;
+		CurrentState = EndState;
+	}
+			break;
+	case 1: switch (symbol)
+	{
+	case DIGIT:w = w * 10 + d; break;
+	case POINT:CurrentState = 2;  break;
+	case POWER:CurrentState = 4; break;
+	default: ICON = w; CurrentState = EndState; if(flag==1) {ICON*=-1; flag=5000;} printf("(INT,%d)\n", ICON); fprintf(fw,"(INT,%d)\n",ICON);
+	}
+			break;
+	case 2: switch (symbol)
+	{
+	case DIGIT:n++; w = w * 10 + d; break;
+	case POWER:CurrentState = 4; break;
+	default: FCON = w * pow(10, e*p - n); CurrentState = EndState; if(flag==1) {FCON*=-1; flag=5000;} printf("(REAL,%g)\n", FCON); fprintf(fw,"(REAL,%g)\n",FCON);
+	}
+			break;
+	case 3:switch (symbol)
+	{
+	case DIGIT:n++; w = w * 10 + d; CurrentState = 2; break;
+	default: HandleError(); CurrentState = EndState;
+	}
+		   break;
+	case 4:switch (symbol)
+	{
+	case DIGIT:p = p * 10 + d; CurrentState = 6; break;
+	case MINUS:e = -1; CurrentState = 5; break;
+	case PLUS:CurrentState = 5; break;
+	default:HandleError(); CurrentState = EndState;
+	}
+		   break;
+	case 5:switch (symbol)
+	{
+	case DIGIT:p = p * 10 + d; CurrentState = 6; break;
+	default:HandleError(); CurrentState = EndState;
+	}
+		   break;
+	case 6:switch (symbol)
+	{
+	case DIGIT:p = p * 10 + d; break;
+	default:FCON = w * pow(10, e*p - n); CurrentState = EndState; if(flag==1) {FCON*=-1; flag=5000;} printf("(REAL,%g)\n", FCON);fprintf(fw,"(REAL,%g)\n",FCON);
+	}
+		   break;
+	}
+	return CurrentState;
+}
+int LEX(FILE *fp,FILE *fw,char cha)
+{
+	int i = 0;
+	for (int j = 0;; j++) {
+		if ((cha <= '9'&&cha >= '0') || cha=='E'|| cha=='-'|| cha=='.')
+		{
+			TOKEN[i] = cha;
+			i++;
+			cha = fgetc(fp);
+		}
+		else break;
+	}
+	int ch;
+	CurrentState = 0;
+	j = 0;
+	while (CurrentState != EndState)
+	{
+		ch = GetChar(j);
+		EXECUTE(CurrentState, ch,fw);
+		j++;
+	}
+	if(cha!=EOF)
+		fseek(fp, -1, 1);
+	return Class;
+}
+
+int lookup(char *token)
+{
+	int n = 0;
+	while (strcmp(KeyWordTable[n], KEY_WORD_END)) /*strcmp比较两串是否相同，若相同返回0*/
+	{
+		if (!strcmp(KeyWordTable[n], token)) /*比较token所指向的关键字和保留字表中哪个关键字相符*/
+		{
+			return n + 1; /*根据单词分类码表I，设置正确的关键字类别码，并返回此类别码的值*/
+			break;
+		}
+		n++;
+	}
+	return 0; /*单词不是关键字，而是标识符*/
+}
+
+void out(int a,char*wordin)
+{
+	switch(a)
+	{
+		case ID:printf("(ID,%s)\n",wordin);break;
+		case INT:printf("(INT,%s)\n",wordin);break;
+		case LT:printf("(LT,%s)\n",wordin);break;
+		case LE:printf("(LE,%s)\n",wordin);break;
+		case EQ:printf("(EQ,%s)\n",wordin);break;
+		case NE:printf("(NE,%s)\n",wordin);break;
+		case GT:printf("(GT,%s)\n",wordin);break;
+		case GE:printf("(GE,%s)\n",wordin);break;
+	}
+}
+
+void report_error()
+{
+	printf("Error!\n");
+}
+
+int HandleOtherWord(void)
+{
+	return ClassOther;
+}
+int HandleError(void)
+{
+	printf("Error\n");
+	return 0;
+}
