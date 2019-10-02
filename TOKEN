@@ -18,16 +18,13 @@ int w, n, p, e, d;
 int Class;
 int ICON;
 double FCON;
-int ForI = 1000;
+int ForI = 1000; //整型或浮点型标志
 static int CurrentState;
 char lc1;
 char lc2;
 char nextcha;
-int type=5000;
-int flag=5000;
-int eflag=5000;
+int flag=5000; //正负标志
 char *stri;
-int noteflag=5000;
 
 # define ID 0
 # define IF 1
@@ -57,8 +54,6 @@ char *KeyWordTable[MAX_KEY_NUMBER]={ "if", "then", "else", "while", "begin", "en
 
 char TOKEN[20];
 
-extern int lookup(char*);
-extern void out(int, char*);
 extern void report_error(void);
 void scanner_example(FILE *fp,FILE *fw);
 int GetChar(int j);
@@ -86,13 +81,13 @@ void main()
 				if(fir=='#') 
 					break;
 			}
-			continue;
+			continue;//应回到循环最开始处，非继续执行
 		}
-		if((fir = fgetc(p)) != EOF){
-			fseek(p,-1,1);
+	//	if((fir = fgetc(p)) != EOF){
+	//		fseek(p,-1,1);
 			scanner_example(p,w);
-		}
-		else {printf("Finish\n"); break;}
+	//	}
+	//	else {printf("Finish\n"); break;}
 	}
 	fclose(p);
 	fclose(w);
@@ -144,8 +139,8 @@ void scanner_example(FILE *fp,FILE *fw)
 					fseek(fp, -1, 1);
 					out(GT, " ");
 				}
-				break;
-			case '-':fseek(fp,-4,1); lc1=fgetc(fp); lc2=fgetc(fp);if(lc2=='='&& lc1!='>'&& lc1!='<'){flag=1; fseek(fp,2,1);} else {fseek(fp,2,1); out(MI, " "); stri="(MI, )\n"; fputs(stri,fw);} break;
+				break;//无nextcha
+			case '-':fseek(fp,-3,1); lc1=fgetc(fp); lc2=fgetc(fp);if(lc2=='='&& lc1!='>'&& lc1!='<'){flag=1; fseek(fp,1,1);} else {fseek(fp,1,1); out(MI, " "); stri="(MI, )\n"; fputs(stri,fw);} break;
 			default: report_error(); break;
 			}
 	return;
@@ -299,4 +294,8 @@ int HandleError(void)
 	printf("Error\n");
 	return 0;
 }
+
+int x=-10+.123 1.23E-13 int
+ y1=020 #123# !!!if x2 >=y @
+do x+>1
 
