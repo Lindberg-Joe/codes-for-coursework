@@ -34,6 +34,8 @@ char *stri;
 # define BEGIN 5
 # define END 6
 # define INT 7
+# define FOR 8
+# define DO 9
 # define LT 10
 # define LE 11
 # define EQ 12
@@ -45,11 +47,13 @@ char *stri;
 # define MI 18
 # define MU 19
 # define DI 20
+# define AN 21 //增加逻辑运算符&，|
+# define OR 22
 
 /* 建立保留字表 */
 #define MAX_KEY_NUMBER 20  /*关键字的数量*/
 #define KEY_WORD_END "waiting for your expanding"  /*关键字结束标记*/
-char *KeyWordTable[MAX_KEY_NUMBER]={ "if", "then", "else", "while", "begin", "end" , KEY_WORD_END};
+char *KeyWordTable[MAX_KEY_NUMBER]={ "if", "then", "else", "while", "begin", "end" , "int" , "for", "do" , KEY_WORD_END};
 /* 查保留字表，判断是否为关键字 */
 
 char TOKEN[20];
@@ -62,6 +66,7 @@ int LEX(FILE *fp,FILE *fw,char cha);
 void report_error();
 int lookup(char *token);
 void out(int a,char*wordin);
+void Octa(FILE *fp,FILE *fw);
 int HandleOtherWord(void);
 int HandleError(void);
 
@@ -111,11 +116,14 @@ void scanner_example(FILE *fp,FILE *fw)
 		if (c == 0) out(ID, TOKEN); else out(c, " ");
 	}
 	else
-		if ((ch >= '0'&&ch <= '9')||ch == '.')
+		if(ch == '0') Octa(fp,fw);
+
+		else if ((ch >= '1'&&ch <= '9')||ch == '.')
 		{
 			LEX(fp,fw,ch);
 		}
 		else
+
 			switch (ch)
 			{
 			case '<': ch = fgetc(fp);
@@ -132,6 +140,8 @@ void scanner_example(FILE *fp,FILE *fw)
 			case '+': out(PL, " "); break;
 			case '*': out(MU, " "); break;
 			case '/': out(DI, " "); break;
+			case '&': out(AN, " "); break;
+			case '|': out(OR, " "); break;
 			case '>': ch = fgetc(fp);
 				if (ch == '=') out(GE, " ");
 				else
@@ -140,7 +150,7 @@ void scanner_example(FILE *fp,FILE *fw)
 					out(GT, " ");
 				}
 				break;//无nextcha
-			case '-':fseek(fp,-3,1); lc1=fgetc(fp); lc2=fgetc(fp);if(lc2=='='&& lc1!='>'&& lc1!='<'){flag=1; fseek(fp,1,1);} else {fseek(fp,1,1); out(MI, " "); stri="(MI, )\n"; fputs(stri,fw);} break;
+			case '-':fseek(fp,-3,1); lc1=fgetc(fp); lc2=fgetc(fp);if(lc2=='='||lc2=='>'||lc2=='<'){flag=1; fseek(fp,1,1);} else {fseek(fp,1,1); out(MI, " "); stri="(MI, )\n"; fputs(stri,fw);} break;
 			default: report_error(); break;
 			}
 	return;
@@ -259,7 +269,7 @@ void out(int a,char*wordin)
 	switch(a)
 	{
 		case ID:printf("(ID,%s)\n",wordin);break;
-		case INT:printf("(INT,%s)\n",wordin);break;
+		//case INT:printf("(INT,%s)\n",wordin);break;
 		case LT:printf("(LT,%s)\n",wordin);break;
 		case LE:printf("(LE,%s)\n",wordin);break;
 		case EQ:printf("(EQ,%s)\n",wordin);break;
@@ -270,6 +280,8 @@ void out(int a,char*wordin)
 		case PL:printf("(PL,%s)\n",wordin);break;
 		case MI:printf("(MI,%s)\n",wordin);break;
 		case MU:printf("(MU,%s)\n",wordin);break;
+		case AN:printf("(AN,%s)\n",wordin);break;
+		case OR:printf("(OR,%s)\n",wordin);break;
 		case DI:printf("(DI,%s)\n",wordin);break;
 		case IF:printf("(IF,%s)\n",wordin);break;
 		case THEN:printf("(THEN,%s)\n",wordin);break;
@@ -277,7 +289,41 @@ void out(int a,char*wordin)
 		case WHILE:printf("(WHILE,%s)\n",wordin);break;
 		case BEGIN:printf("(BEGIN,%s)\n",wordin);break;
 		case END:printf("(END,%s)\n",wordin);break;
+		case INT:printf("(INT,%s)\n",wordin);break;
+		case FOR:printf("(FOR,%s)\n",wordin);break;
+		case DO:printf("(DO,%s)\n",wordin);break;
 	}
+}
+
+void Octa(FILE *fp,FILE *fw)
+{
+	int j=0;
+	int i=0;
+	int sum=0;
+	char cha = fgetc(fp);
+	char wordin[20];
+	for(j=0;;j++){
+		if(cha <= '7' && cha >= '0'){
+			wordin[i] = cha-'0';
+			cha = fgetc(fp);
+			i++;
+		}
+		else break;
+	}
+	i--;
+	int c=i;
+	j=0;
+	for(;i>=0;i--){
+		wordin[i]*=pow(8,j);
+		j++;
+	}
+	for(i=0;i<=c;i++){
+		sum+=wordin[i];
+	}
+    fprintf(fw,"(OCTAL,%d)\n",sum);
+	printf("(OCTAL,%d)\n",sum);
+	//if(cha!=EOF)
+	//	fseek(fp, -1, 1);
 }
 
 void report_error()
@@ -294,7 +340,6 @@ int HandleError(void)
 	printf("Error\n");
 	return 0;
 }
-
 int x=-10+.123 1.23E-13 int
  y1=020 #123# !!!if x2 >=y @
 do x+>1
