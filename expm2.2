@@ -59,7 +59,6 @@ char *stri;
 #define MAXINPUT 300
 #define MAXSTACK 100
 #define STARTSYMBOL 'S'
-int stack[MAXSTACK];
 
 /* 建立保留字表 */
 #define MAX_KEY_NUMBER 20  /*关键字的数量*/
@@ -81,15 +80,14 @@ int te=0;
 char sta[MAXINPUT];
 int ta=0;
 int table[8][8]={
-				1,1-1,-1,-1,1,-1,1,
-				1,1-1,-1,-1,1,-1,1,
-				1,1,1,1,-1,1-1,1,
-				1,1,1,1,-1,1-1,1,
-				-1,-1,-1,-1,-1,0,-1,
-				1,1,1,1,2,1,2,1,
-				1,1,1,1,2,1,2,1,
-				-1,-1,-1,-1,-1,2,-1,2
-				};
+	{1,1,-1,-1,-1,1,-1,1},
+	{1,1,-1,-1,-1,1,-1,1},
+	{1,1,1,1,-1,1,-1,1},
+	{1,1,1,1,-1,1,-1,1},
+	{-1,-1,-1,-1,-1,0,-1},
+	{1,1,1,1,2,1,2,1},
+	{1,1,1,1,2,1,2,1},
+	{-1,-1,-1,-1,-1,2,-1,2}};
 
 extern void report_error(void);
 void scanner_example(FILE *fp,FILE *fw);
@@ -399,7 +397,7 @@ int parser(void)
 			k = j + 1;           /* reduce the leftmost prime phrase */
 			stack[k] = NewVn;  /* it is stack[j+1] stack[j+2] … stack[k] */
 			change();
-			printf("5d\t %s\t %s\t\n",counter,sta,ste);
+			printf("%d\t %s\t %s\t\n",counter,sta,ste);
 			counter++;
 		} /*end of while*/
 		if (IsLowerThan(stack[j], r) || IsEqualTo(stack[j], r))
@@ -475,7 +473,8 @@ void change()
 			case 9:ste[te]='T'; te++; break;
 			case 10:ste[te]='F'; te++; break;
 		}	
-	for(int ee=0;ee<=k;ee++){
+	}
+	for(ee=0;ee<=k;ee++){
 		switch(stack[ee]){
 			case 0:sta[ta]='+'; te++; break;
 			case 1:sta[ta]='-'; te++; break;
@@ -489,12 +488,13 @@ void change()
 			case 9:sta[ta]='T'; te++; break;
 			case 10:sta[ta]='F'; te++; break;
 		}	
+	}
 
 }
 
 int IsVt(int l)
 {
-	if(l<=6 && l>=0) return 1;
+	if(l<=7 && l>=0) return 1;
 	else return 0;
 }
 
@@ -512,4 +512,5 @@ int HandleError(void)
 	printf("Error\n");
 	return 0;
 }
+
 
