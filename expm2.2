@@ -107,7 +107,7 @@ int IsEqualTo(int x, int y);    /* priority detection */
 int Reduce(int begin, int end, int len);
 int IsVt(int l);  /* determine if stack symbol is in Vt */
 int parser(void);
-void change();
+//void change();
 
 void main()
 {
@@ -138,9 +138,11 @@ void main()
 
 	for(int k=0;k<fa;k++)
 		printf("%d ",as[k]);
+	as[k]=7;//#
 
 	printf("步骤\t Stack\t 输入串\n");
-	parser();
+	if(parser()) printf("Succeed!\n");
+	else printf("Error!");
 
 }
 
@@ -393,14 +395,14 @@ int parser(void)
 				q = stack[j];
 				if (IsVt(stack[j - 1])) j--; else j -= 2;
 			} while (!IsLowerThan(stack[j], q));
-			NewVn = Reduce(stack[j + 1], stack[k], k - j);
+			NewVn = Reduce(j, k-1, k - j);
 			k = j + 1;           /* reduce the leftmost prime phrase */
 			stack[k] = NewVn;  /* it is stack[j+1] stack[j+2] … stack[k] */
-			change();
-			printf("%d\t %s\t %s\t\n",counter,sta,ste);
-			counter++;
+		//	change();
+		//	printf("%d\t %s\t %s\t\n",counter,sta,ste);
+		//	counter++;
 		} /*end of while*/
-		if (IsLowerThan(stack[j], r) || IsEqualTo(stack[j], r))
+		if ((IsLowerThan(stack[j], r) || IsEqualTo(stack[j], r))||(r==7 &&stack[j]==7))
 				stack[++k] = r;
 		else return ERROR;
 	} while (r != 7);//#
@@ -455,7 +457,7 @@ int Reduce(int begin, int end, int len) //只返回一个Vn
 	else if(sten[0]=='i') return 10;
 }
 
-void change()
+/*void change()
 {
 	te=0;
 	ta=0;
@@ -490,7 +492,7 @@ void change()
 		}	
 	}
 
-}
+}*/
 
 int IsVt(int l)
 {
@@ -512,5 +514,7 @@ int HandleError(void)
 	printf("Error\n");
 	return 0;
 }
+
+
 
 
