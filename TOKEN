@@ -49,6 +49,8 @@ char *stri;
 # define DI 20
 # define AN 21 //增加逻辑运算符&，|
 # define OR 22
+# define LFBK 23
+# define RTBK 24
 
 /* 建立保留字表 */
 #define MAX_KEY_NUMBER 20  /*关键字的数量*/
@@ -111,7 +113,7 @@ void scanner_example(FILE *fp,FILE *fw)
 				ch = fgetc(fp);
 		}
 		TOKEN[i] = '\0';
-			fseek(fp, -1, 1);  /* retract*/
+		if(ch!=EOF)	fseek(fp, -1, 1);  /* retract*/
 		c = lookup(TOKEN);
 		if (c == 0) out(ID, TOKEN); else out(c, " ");
 	}
@@ -131,7 +133,7 @@ void scanner_example(FILE *fp,FILE *fw)
 				else if (ch == '>') out(NE, " ");
 				else
 				{
-					fseek(fp, -1, 1);
+					if(ch!=EOF) fseek(fp, -1, 1);
 					out(LT, " ");
 				}
 				break;
@@ -142,11 +144,13 @@ void scanner_example(FILE *fp,FILE *fw)
 			case '/': out(DI, " "); break;
 			case '&': out(AN, " "); break;
 			case '|': out(OR, " "); break;
+			case '(': out(LFBK, " "); break;
+			case ')': out(RTBK, " "); break;
 			case '>': ch = fgetc(fp);
 				if (ch == '=') out(GE, " ");
 				else
 				{
-					fseek(fp, -1, 1);
+					if(ch!=EOF) fseek(fp, -1, 1);
 					out(GT, " ");
 				}
 				break;//无nextcha
@@ -292,6 +296,8 @@ void out(int a,char*wordin)
 		case INT:printf("(INT,%s)\n",wordin);break;
 		case FOR:printf("(FOR,%s)\n",wordin);break;
 		case DO:printf("(DO,%s)\n",wordin);break;
+		case LFBK:printf("(LFBK,%s)\n",wordin);break;
+		case RTBK:printf("(RTBK,%s)\n",wordin);break;
 	}
 }
 
