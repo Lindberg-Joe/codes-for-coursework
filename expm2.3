@@ -140,9 +140,9 @@ void main()
 	as[fa]=7;//#
 
 	printf("步骤\t Stack\t 输入串\n");
-	//if(
-	parser();//) printf("Succeed!\n");
-//	else printf("Error!");
+	if(
+	parser()) printf("Succeed!\n");
+	else printf("Error!");
 
 }
 
@@ -200,7 +200,7 @@ void scanner_example(FILE *fp,FILE *fw)
 					out(GT, " ");
 				}
 				break;//无nextcha
-			case '-':fseek(fp,-3,1); lc1=fgetc(fp); lc2=fgetc(fp);if(lc2=='='||lc2=='>'||lc2=='<'){flag=1; fseek(fp,1,1);} else {fseek(fp,1,1); out(MI, " "); stri="(MI, )\n"; fputs(stri,fw);} break;
+			case '-':fseek(fp,-3,1); lc1=fgetc(fp); lc2=fgetc(fp);if(lc2=='='||lc2=='>'||lc2=='<'){flag=1; fseek(fp,1,1);} else {fseek(fp,-1,1); out(MI, " "); stri="(MI, )\n"; fputs(stri,fw);} break;
 			default: report_error(); break;
 			}
 	return;
