@@ -154,7 +154,7 @@ void main()
 	printf("步骤\t Stack\t 输入串\n");
 	if(
 	parser()) printf("Succeed!\n");
-	else printf("Error!");
+	else printf("Error!\n");
 
 }
 
@@ -415,8 +415,11 @@ int parser(void)
 			change(0,k,step-1,fa);
 			printf("%d\t %s\t %s\t\n",++counter,sta,ste);
 		} /*end of while*/
-		if ((IsLowerThan(stack[j], r) || IsEqualTo(stack[j], r))||(r==7 &&stack[j]==7))
+		if ((IsLowerThan(stack[j], r) || IsEqualTo(stack[j], r))||(r==7 &&stack[j]==7)){
 				stack[++k] = r;
+				change(0,k,step,fa);
+			    printf("%d\t %s\t %s\t\n",++counter,sta,ste);
+				}
 		else return ERROR;
 	} while (r != 7);//#
 	if(stack[1]==9) printf("%d\t #E\t #\t\n",++counter);
@@ -534,4 +537,6 @@ int HandleError(void)
 	printf("Error\n");
 	return 0;
 }
+
+
 
