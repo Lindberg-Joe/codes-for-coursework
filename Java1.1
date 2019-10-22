@@ -1,0 +1,32 @@
+package test;
+import java.util.Scanner;
+public class test{
+    public static void main(String[] args)
+        {
+            int age[];
+            age = new int[10];
+            int i = 0;
+            float grade[];
+            grade = new float[10];
+            Scanner sc = new Scanner(System.in);
+            String str1;
+            for(i=0;i<10;i++)
+            {
+                str1 = sc.next();
+                age[i]=sc.nextInt();
+                str1 = sc.next();
+                grade[i]=sc.nextFloat();
+            }
+            int ave1=0;
+            float ave2=0;
+            for(i=0;i<10;i++)
+            {
+                ave1+= age[i];
+                ave2+= grade[i];
+            }
+            ave1/=10;
+            ave2/=10;
+            System.out.println("平均年龄："+ave1);
+            System.out.println("平均成绩："+ave2);
+        }
+}
