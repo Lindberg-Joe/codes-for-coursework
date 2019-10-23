@@ -61,23 +61,21 @@ class MyDate {
     }
 }
 
-class Person extends MyDate {
+class Person{
     MyDate date;
     public Person(int y, int m, int d)
     {
-        super(y,m,d);
+        date=new MyDate(y,m,d);
     }
 }
 class Student extends Person {
     int code;
     String name;
-    MyDate att;
     int id;
     int grade;
     public Student(int c,String s,int y,int m,int d,int i,int g)
     {
         super(y,m,d);
-        att=new MyDate(y,m,d);
         this.code=c;
         this.grade=g;
         this.name=s;
@@ -85,7 +83,8 @@ class Student extends Person {
     }
     public String toString(int x)
     {
-        return "学号"+this.code+" 入学时间"+this.att.year+" "+this.att.mouth+" "+this.att.day+" 成绩"+this.grade+" 姓名 "+this.name+" 身份证号"+this.id;
+        return "学号"+this.code+" 入学时间"+this.date.year+" "+this.date.mouth+" "+this.date.day+" 成绩"+this.grade+" 姓名 "+this.name+" 身份证号"+this.id;
     }
 }
+
 
