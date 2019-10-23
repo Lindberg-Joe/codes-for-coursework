@@ -1,0 +1,53 @@
+package test;
+import java.util.Scanner;
+import java.util.Arrays;
+public class test {
+    public static void main(String[] args)
+    {
+        Vehicle v=new Vehicle(4,5);
+        System.out.println(v.toString());
+        Car c=new Car(4,5,5);
+        System.out.println(c.toString());
+        Truck t=new Truck(16,30,2,10);
+        System.out.println(t.toString());
+        Vehicle vt= new Truck(1,2,3,5);
+        System.out.println(vt.toString());
+    }
+}
+class Vehicle {
+    int wheels;
+    int weight;
+    public Vehicle(int x,int y)
+    {
+        this.weight=x;
+        this.wheels=y;
+    }
+    public String toString()
+    {
+        return "Vehicle wheels: "+this.wheels+" weight: "+this.weight;
+    }
+}
+class Car extends Vehicle {
+    int loader;
+    public Car(int x,int y,int z)
+    {
+        super(x,y);
+        this.loader=z;
+    }
+    public String toString()
+    {
+        return "Car wheels: "+this.wheels+" weight: "+this.weight+" loader: "+this.loader;
+    }
+}
+class Truck extends Car {
+    int payload;
+    public Truck(int x,int y,int z,int w)
+    {
+        super(x,y,z);
+        this.payload=w;
+    }
+    public String toString()
+    {
+        return "Truck wheels: "+this.wheels+" weight: "+this.weight+" loader: "+this.loader+" payload: "+this.payload;
+    }
+}
