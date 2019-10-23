@@ -1,0 +1,24 @@
+package test;
+import java.util.Scanner;
+import java.util.Arrays;
+public class test{
+    public static void main(String[] args)
+        {
+            int qrt;
+            int i,j;
+            int pro=1;
+            System.out.println("100~200之间的所有素数:");
+            for(i=100;i<=200;i++)
+            {
+                qrt= (int) Math.sqrt(i);
+                pro=1;//初始化pro
+                for(j=2;j<=qrt;j++)
+                {
+                    pro*=(i%j);
+                }
+                if(pro!=0) System.out.print(i+" ");
+            }
+
+        }
+
+}
