@@ -1,0 +1,22 @@
+package test;
+import java.util.Scanner;
+import java.util.Arrays;
+public class test{
+    public static void main(String[] args)
+        {
+            int sum=0;
+            int i,j;
+            System.out.println("1至1000之内的所有“完全数”:");
+            for(i=1;i<1001;i++)
+            {
+                sum=0;//初始化
+                for(j=1;j<i;j++)
+                {
+                    if(i%j==0) sum+=j;
+                }
+                if(sum==i) System.out.print(i+" ");
+            }
+
+        }
+
+}
