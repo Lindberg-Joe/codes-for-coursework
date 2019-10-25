@@ -226,6 +226,7 @@ void word(FILE *fp,FILE *fw)
 //	for(int k=0;k<fa;k++){
 //		printf("%d ",as[k]);
 //	}
+	if((fir==EOF)){as[fa]=7; fa++;}
 }
 
 void scanner_example(FILE *fp,FILE *fw)
@@ -241,9 +242,9 @@ void scanner_example(FILE *fp,FILE *fw)
 				ch = fgetc(fp);
 		}
 		TOKEN[i] = '\0';
-		if(ch!=EOF)	fseek(fp, -1, 1); else {as[fa]=7; fa++;} /* retract*/
-		c = lookup(TOKEN);
-		if (c == 0) out(ID, TOKEN); else out(c, " ");
+		c = lookup(TOKEN);		
+		if (c == 0) out(ID, TOKEN); else out(c, " ");		
+		if(ch!=EOF)	fseek(fp, -1, 1);// else if((ch==EOF)){as[fa]=7;} /* retract*/
 	}
 	else
 		if(ch == '0') Octa(fp,fw);
@@ -261,7 +262,7 @@ void scanner_example(FILE *fp,FILE *fw)
 				else if (ch == '>') out(NE, " ");
 				else
 				{
-					if(ch!=EOF) fseek(fp, -1, 1);
+					if(ch!=EOF) fseek(fp, -1, 1); //else if((ch==EOF)){as[fa]=7;}
 					out(LT, " ");
 				}
 				break;
@@ -278,7 +279,7 @@ void scanner_example(FILE *fp,FILE *fw)
 				if (ch == '=') out(GE, " ");
 				else
 				{
-					if(ch!=EOF) fseek(fp, -1, 1);
+					if(ch!=EOF) fseek(fp, -1, 1);// else if((ch==EOF)){as[fa]=7;}
 					out(GT, " ");
 				}
 				break;//无nextcha
@@ -292,7 +293,7 @@ int GetChar(int j)
 {
 	int c;
 	c = TOKEN[j];
-	if (c >= '0'&&c <= '9') { d = c - '0'; return DIGIT; }
+	if (c >= '0'&&c <= '9') { d = c - '0'; return DIGIT;}
 	if (c == '.') return POINT;
 	if (c == 'E' || c == 'e') return POWER;
 	if (c == '+') return PLUS;
@@ -378,7 +379,7 @@ int LEX(FILE *fp,FILE *fw,char cha)
 	}
 	if(cha!=EOF)
 		fseek(fp, -1, 1);
-	else  {as[fa]=7; fa++;}
+	//else if((cha==EOF)){as[fa]=7; fa++;}
 	return Class;
 }
 
@@ -508,6 +509,7 @@ void advance(FILE *fp,FILE *fw)
 {
 	TopStat=stacks[s];
 	word(fp,fw);
+//	if(as[fa]==7) InpSym=as[fa];
 	InpSym=as[fa-1];
 	s++;
 	x++;
@@ -534,6 +536,7 @@ void act(int k)
 	s=s-len;
 	stacks[s]=GOTO[stacks[s-1]][stackx[x]-8];
 	TopStat=stacks[s];
+//	if(as[fa]==7) InpSym=as[fa];
 	InpSym=as[fa-1];
 	s++;
 	x++;
