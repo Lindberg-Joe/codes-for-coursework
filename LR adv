@@ -133,7 +133,8 @@ int as[MAX];
 int fa=0;
 int stackx[MAX];	//符号栈
 int x=0;			//index of stackx
-int ef=1000;		//error flag
+int ef=1000;		//语法error flag
+int wf=1000;		//词法error flag
 int TopStat,InpSym;
 int len=0;			//将规约的产生式右侧的长度
 int leng;			//输入串加#的长度
@@ -201,6 +202,7 @@ void readandputall(FILE *fp,FILE *ft)
 
 void word(FILE *fp,FILE *fw)
 {
+	wf=0;
 	char fir;
 	while ((fir = fgetc(fp)) != EOF) {
 		if (fir == ' '|| fir == '\n'|| fir == '\t') continue; else if(fir!='#') fseek(fp,-1,1);
@@ -218,6 +220,7 @@ void word(FILE *fp,FILE *fw)
 			break;
 	}//while
 	if((fir==EOF)){as[fa]=7; fa++;}
+	if(wf==1) word(fp,fw);//如此次词法分析单词有误，输出error后略过，再次调用词法分析
 }
 
 void scanner_example(FILE *fp,FILE *fw)
@@ -463,7 +466,7 @@ void controller(FILE *fp,FILE *ft,FILE *fw)
 		rf=0;
 		if(ACTION[TopStat][InpSym]==ERROR)
 		{
-			printf("Error!\n");
+			printf("Grammar Error!\n");
 			ef=1;
 			break;
 		}
@@ -558,7 +561,8 @@ void change(int x,int y)//输出符号栈
 
 void report_error()
 {
-	printf("Error!\n");
+	wf=1;
+	printf("Word Error!\n");
 }
 
 int HandleOtherWord(void)
