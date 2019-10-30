@@ -1,0 +1,76 @@
+package test;
+        import java.util.Scanner;
+        import java.util.Arrays;
+public class test {
+    public static void main(String[] args)
+    {
+        Scanner sc = new Scanner(System.in);
+        String str1;
+        int[] ar=new int[5];
+        str1=sc.nextLine();
+        String[] strArr1 = str1.split("");
+        String[] strArr2 =str1.split(" ");
+        for(int i=0;i<strArr1.length;i++)
+        {
+            if(strArr1[i].toCharArray()[0]<='9'&&strArr1[i].toCharArray()[0]>='0'||strArr1[i].toCharArray()[0]==' ')
+                continue;
+            else throw new InputException();
+        }
+        for(int i=0;i<strArr2.length;i++)
+        {
+            ar[i]=Integer.valueOf(strArr2[i]);
+        }
+        A1 ave1=new A1();
+        System.out.println(ave1.Average(ar));
+        A2 ave2=new A2();
+        System.out.println(ave2.Average(ar));
+    }
+}
+
+interface Average
+{
+    public abstract  double Average(int[] a);
+}
+
+class A1 implements Average
+{
+    //int[] arra=new int[5];
+    //public void getArr()
+    public double Average(int[] a)
+    {
+        double sum;
+        sum=0;
+        for(int i=0;i<a.length;i++)
+        {
+            sum+=a[i];
+        }
+        return sum/a.length;
+    }
+}
+
+class A2 implements Average
+{
+    //int[] arra=new int[5];
+    public double Average(int[] a)
+    {
+        Arrays.sort(a);
+        double sum;
+        sum=0;
+        a[0]=0;
+        a[a.length-1]=0;
+        for(int i=0;i<a.length;i++)
+        {
+            sum+=a[i];
+        }
+        return sum/a.length;
+    }
+}
+
+class InputException extends IllegalArgumentException
+{
+    public InputException()
+    {
+        super();
+        System.out.println("Illegal Input");
+    }
+}
