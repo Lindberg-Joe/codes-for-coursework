@@ -1,0 +1,212 @@
+1
+
+package test;
+import java.util.Scanner;
+import java.util.Arrays;
+public class test {
+    public static void main(String[] args)
+    {
+        Thread t1=new Thread1();
+        Thread t2=new Thread2();
+        t1.start();
+        t2.start();
+    }
+}
+
+class Thread1 extends Thread {
+    public void run()
+    {
+        int c=0;
+        for(int i=0;i<=100;i++)
+        {
+            if(i%2==0)
+            {
+                System.out.print(i+" ");
+                c++;
+            }
+        }
+        System.out.println("sum"+c);
+    }
+}
+class Thread2 extends Thread {
+    public void run()
+    {
+        int c=0;
+        for(int i=0;i<=100;i++)
+        {
+            if(i%2!=0)
+            {
+                System.out.print(i+" ");
+                c++;
+            }
+        }
+        System.out.println("sum"+c);
+    }
+}
+
+2
+
+package test;
+import java.util.Scanner;
+import java.util.Arrays;
+public class test {
+    public static void main(String a[])
+    {
+        Rabit rabit;
+        rabit =new Rabit("r",10,5);
+        Tortoise tortoise =new Tortoise("t",10,5);
+        tortoise.start();
+        rabit.start();
+    }
+}
+class Tortoise extends Thread
+{     int sleepTime=0, liveLength=0;
+      //String name;
+    public Tortoise(String name,int sleepTime, int liveLength)
+    {
+        this.sleepTime=sleepTime;
+        this.liveLength=liveLength;
+        this.setName(name);
+    }
+    public void run()
+    {   while (true )
+        {
+        liveLength--;
+        System.out.println("@_@");
+        try{
+                   this.sleep(sleepTime);
+        }
+        catch (InterruptedException e) {}
+        if (liveLength<=0 )
+        {
+            System.out.println(getName()+"进入死亡状态\n");
+            this.stop();
+        }
+    }
+    }
+}
+class Rabit extends Thread
+{
+    int sleepTime=0, liveLength=0;
+    public Rabit(String name,int sleepTime, int liveLength)
+    {
+        this.setName(name);
+        this.sleepTime=sleepTime;
+        this.liveLength=liveLength;
+    }
+    public void run()
+    {
+        while (true )
+        {
+            liveLength--;
+            System.out.println("*_*");
+            try{
+                sleep( sleepTime);
+            }
+            catch (InterruptedException e) {}
+            if (liveLength<=0 )
+            {
+                System.out.println(getName()+"进入死亡状态\n");
+                break;
+            }
+        }
+    }
+}
+
+3
+
+package test;
+import java.util.Scanner;
+import java.util.Arrays;
+public class test {
+    public static void main(String a[])
+    {
+        TicketSeller sa=new TicketSeller();
+        TicketBuyer t1=new TicketBuyer(sa,20,2);
+        TicketBuyer t2=new TicketBuyer(sa,20,1);
+        TicketBuyer t3=new TicketBuyer(sa,10,1);
+        TicketBuyer t4=new TicketBuyer(sa,10,2);
+        TicketBuyer t5=new TicketBuyer(sa,5,1);
+        t1.start();
+        t2.start();
+        t3.start();
+        t4.start();
+        t5.start();
+    }
+}
+class TicketBuyer extends Thread{
+    TicketSeller seller;
+    int money;
+    int num;
+    TicketBuyer(TicketSeller seller,int m,int n)
+    {
+        this.seller=seller;
+        money=m;
+        num=n;
+    }
+    public void run()
+    {
+        seller.sellTicket(money,num);
+        //seller.toOut();
+    }
+}
+class TicketSeller{
+    int fiveNumber=1,tenNumber=0,twentyNumber=0;
+    public synchronized void sellTicket(int receiveMoney,int tick)
+    {
+        String s=Thread.currentThread().getName();
+        if(receiveMoney==5&&tick==1)
+        {
+            fiveNumber=fiveNumber+1;
+            System.out.println(s+"给售票员5元钱，售票员卖给"+s+"一张票，不必找赎");
+        }else if(receiveMoney==10&&tick==2)
+        {
+            tenNumber++;
+            System.out.println(s+"给售票员10元钱，售票员卖给"+s+"2张票，不必找赎");
+        }
+        else if(receiveMoney==10&&tick==1){
+            while(fiveNumber<1){
+                try{
+                    System.out.println(s+"给售票员10元钱");
+                    System.out.println("售票员请"+s+"等一会");
+                    wait();
+                    System.out.println(s+"结束等待，继续买票");
+                }catch(InterruptedException e){}
+            }
+            fiveNumber--;
+            tenNumber++;
+            System.out.println(s+"给售票员10元钱，售票员卖给"+s+"一张票，找5元");
+        }
+        else if(receiveMoney==20&&tick==1){
+            boolean b1=fiveNumber>=1&&tenNumber>=1;
+            while(!b1){
+                try{
+                    System.out.println(s+"给售票员20元钱");
+                    System.out.println("售票员请"+s+"等一会");
+                    wait();
+                    System.out.println(s+"结束等待，继续买票");
+                    b1=fiveNumber>=1&&tenNumber>=1;
+                }catch(InterruptedException e){}
+            }
+                fiveNumber--;
+                tenNumber--;
+                twentyNumber++;
+            System.out.println(s+"给售票员20元钱，售票员卖给"+s+"一张票，找15元");
+        }else if(receiveMoney==20&&tick==2){
+            boolean b1=tenNumber>=1;
+            while(!b1){
+                try{
+                    System.out.println(s+"给售票员20元钱");
+                    System.out.println("售票员请"+s+"等一会");
+                    wait();
+                    System.out.println(s+"结束等待，继续买票");
+                    b1=tenNumber>=1;
+                }catch(InterruptedException e){}
+            }
+            tenNumber--;
+            twentyNumber++;
+            System.out.println(s+"给售票员20元钱，售票员卖给"+s+"2张票，找10元");
+        }
+        notifyAll();
+    }
+}
