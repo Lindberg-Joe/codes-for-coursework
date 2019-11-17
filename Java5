@@ -114,7 +114,6 @@ class Rabit extends Thread
 }
 
 3
-
 package test;
 import java.util.Scanner;
 import java.util.Arrays;
@@ -122,11 +121,11 @@ public class test {
     public static void main(String a[])
     {
         TicketSeller sa=new TicketSeller();
-        TicketBuyer t1=new TicketBuyer(sa,20,2);
-        TicketBuyer t2=new TicketBuyer(sa,20,1);
-        TicketBuyer t3=new TicketBuyer(sa,10,1);
-        TicketBuyer t4=new TicketBuyer(sa,10,2);
-        TicketBuyer t5=new TicketBuyer(sa,5,1);
+        TicketBuyer t1=new TicketBuyer(sa,20,2,"赵");
+        TicketBuyer t2=new TicketBuyer(sa,20,1,"钱");
+        TicketBuyer t3=new TicketBuyer(sa,10,1,"孙");
+        TicketBuyer t4=new TicketBuyer(sa,10,2,"李");
+        TicketBuyer t5=new TicketBuyer(sa,5,1,"周");
         t1.start();
         t2.start();
         t3.start();
@@ -138,11 +137,12 @@ class TicketBuyer extends Thread{
     TicketSeller seller;
     int money;
     int num;
-    TicketBuyer(TicketSeller seller,int m,int n)
+    TicketBuyer(TicketSeller seller,int m,int n,String name)
     {
         this.seller=seller;
         money=m;
         num=n;
+        this.setName(name);
     }
     public void run()
     {
@@ -210,3 +210,4 @@ class TicketSeller{
         notifyAll();
     }
 }
+
