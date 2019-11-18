@@ -1,0 +1,43 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+
+namespace 校验
+{
+    public partial class Form1 : Form
+    {
+        public Form1()
+        {
+            InitializeComponent();
+        }
+        string codestring;
+        int[] numcode=new int[14];
+        int c1, c2, c3, c4;
+        int r;
+        private void button1_Click(object sender, EventArgs e)
+        {
+            codestring = textBox1.Text;
+            for(int i = 0; i < 13; i++)
+            {
+                numcode[13 - i] = codestring[i] - 0x30;
+            }
+            c1 = numcode[2] + numcode[4] + numcode[6] + numcode[8] + numcode[10] + numcode[12];
+            c2 = c1 * 3;
+            c3 = numcode[3] + numcode[5] + numcode[7] + numcode[9] + numcode[11] + numcode[13];
+            c4 = c2 + c3;
+            r = c4 % 10;
+            r = 10 - r;
+            textBox2.Text = r.ToString();
+        }
+
+        
+    }
+}
+
