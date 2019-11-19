@@ -40,13 +40,13 @@ namespace RFID_1._4
             }
         }//button1
 
-        private void button5_Click(object sender, EventArgs e)
+        private void button5_Click(object sender, EventArgs e)//偶校验
         {
             Random random = new Random();
             for (int i = 0; i < 100; i++)
             {
                 str = string.Empty;
-                arr[i] = new int[8];
+                arr[i] = new int[9];
                 for (int j = 0; j < 8; j++)
                 {
                     arr[i][j] = (random.Next() % 2);
@@ -55,13 +55,13 @@ namespace RFID_1._4
                 ListViewItem l1 = new ListViewItem();
                 l1.Text = counter.ToString();
                 l1.SubItems.Add(str);
-                l1.SubItems.Add("0");
                 counter++;
                 listView5.Items.Add(l1);
             }
+  
         }
 
-        private void button6_Click(object sender, EventArgs e)
+  /*      private void button6_Click(object sender, EventArgs e)
         {
             Random random = new Random();
             for (int i = 0; i < 100; i++)
@@ -76,11 +76,10 @@ namespace RFID_1._4
                 ListViewItem l1 = new ListViewItem();
                 l1.Text = counter.ToString();
                 l1.SubItems.Add(str);
-                l1.SubItems.Add("0");
                 counter++;
                 listView6.Items.Add(l1);
             }
-        }
+        }*/
         private void button7_Click(object sender, EventArgs e)
         {
             Random random = new Random();
@@ -96,13 +95,12 @@ namespace RFID_1._4
                 ListViewItem l1 = new ListViewItem();
                 l1.Text = counter.ToString();
                 l1.SubItems.Add(str);
-                l1.SubItems.Add("0");
                 counter++;
                 listView7.Items.Add(l1);
             }
         }
 
-        private void button3_Click_1(object sender, EventArgs e)
+        private void button3_Click_1(object sender, EventArgs e)//海明
         {
             {
                 int r1 = 0, r2 = 0, r3 = 0, r4 = 0;
@@ -137,7 +135,7 @@ namespace RFID_1._4
             }
         }
 
-        private void button2_Click_1(object sender, EventArgs e)
+        private void button2_Click_1(object sender, EventArgs e)//偶校验
         {
             {
                 int count1 = 0;
@@ -150,8 +148,8 @@ namespace RFID_1._4
                     }
                     ListViewItem l2 = new ListViewItem();
                     l2.Text = i.ToString();
-                    if (count1 % 2 == 0) l2.SubItems.Add("0");
-                    else l2.SubItems.Add("1");
+                    if (count1 % 2 == 0) { l2.SubItems.Add("0"); arr[i][8] = 0; }
+                    else {l2.SubItems.Add("1"); arr[i][8] = 1; }
                     l2.SubItems.Add(count1.ToString());
                     listView2.Items.Add(l2);
                 }
@@ -161,9 +159,89 @@ namespace RFID_1._4
 
         private void button4_Click_1(object sender, EventArgs e)
         {
+            Random random = new Random();
+            for (int i = 0; i < 100; i++)
+            {
+                str = string.Empty;
+                arr[i] = new int[8];
+                for (int j = 0; j < 8; j++)
+                {
+                    arr[i][j] = (random.Next() % 2);
+                    str += arr[i][j];
+                }
+                ListViewItem l1 = new ListViewItem();
+                l1.Text = counter.ToString();
+                l1.SubItems.Add(str);
+                counter++;
+                listView7.Items.Add(l1);
+            }
+        }
 
+        private void button6_Click_1(object sender, EventArgs e)
+        {
+            Random random = new Random();
+            for (int i = 0; i < 100; i++)
+            {
+                str = string.Empty;
+                arr[i] = new int[8];
+                for (int j = 0; j < 8; j++)
+                {
+                    arr[i][j] = (random.Next() % 2);
+                    str += arr[i][j];
+                }
+                ListViewItem l1 = new ListViewItem();
+                l1.Text = counter.ToString();
+                l1.SubItems.Add(str);
+                counter++;
+                listView6.Items.Add(l1);
+            }
+        }
+
+        private void button4_Click(object sender, EventArgs e)//CRC
+        {
+
+        }
+
+        private void button8_Click(object sender, EventArgs e)//奇偶校验接收
+        {
+            Random random = new Random();
+            float sum = 0;
+            for (int i = 0; i < 100; i++)//1/100的出错率
+            {
+                for (int j = 0; j < 8; j++)
+                {
+                    int f = random.Next() % 100;
+                    if (f == 50) arr[i][j] = 1;
+                }
+            }
+            int count1 = 0;
+            int flag = 1000;
+            for (int i = 0; i < 100; i++)
+            {
+                count1 = 0;
+                for (int j = 0; j < 8; j++)
+                {
+                    if (arr[i][j] == 1) { count1++; }
+                }
+                ListViewItem l2 = new ListViewItem();
+                l2.Text = i.ToString();
+                str = string.Empty;
+                for (int j = 0; j < 8; j++)
+                {
+                    str += arr[i][j];
+                }
+                l2.SubItems.Add(str);
+                flag = count1 % 2;
+                if (flag == 0) { l2.SubItems.Add("0"); }
+                else { l2.SubItems.Add("1"); }
+                if (flag == arr[i][8]) l2.SubItems.Add("正确");
+                else { l2.SubItems.Add("有误"); sum++; }
+                listView8.Items.Add(l2);
+            }
+            sum = 100-sum;
+            sum /= 100;
+            textBox2.Text = "正确率："+sum.ToString();
         }
     }//Form1
 
 }//namespace
-
