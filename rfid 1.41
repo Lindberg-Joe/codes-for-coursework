@@ -204,6 +204,7 @@ namespace RFID_1._4
 
         private void button8_Click(object sender, EventArgs e)//奇偶校验接收
         {
+            int[] flag2 = new int[100];
             Random random = new Random();
             float sum = 0;
             for (int i = 0; i < 100; i++)//1/100的出错率
@@ -211,7 +212,8 @@ namespace RFID_1._4
                 for (int j = 0; j < 8; j++)
                 {
                     int f = random.Next() % 100;
-                    if (f == 50) arr[i][j] = 1;
+                    if (f == 50) { arr[i][j] = 1; flag2[i] = 1; }
+                    else flag2[i] = 0;
                 }
             }
             int count1 = 0;
@@ -234,8 +236,9 @@ namespace RFID_1._4
                 flag = count1 % 2;
                 if (flag == 0) { l2.SubItems.Add("0"); }
                 else { l2.SubItems.Add("1"); }
-                if (flag == arr[i][8]) l2.SubItems.Add("正确");
-                else { l2.SubItems.Add("有误"); sum++; }
+                if (flag == arr[i][8] && flag2[i] == 0) l2.SubItems.Add("正确");
+                else if (flag != arr[i][8] && flag2[i] == 0) { l2.SubItems.Add("有误"); sum++; }
+                else if (flag == arr[i][8] && flag2[i] == 1) { l2.SubItems.Add("实际有误"); sum++; }
                 listView8.Items.Add(l2);
             }
             sum = 100-sum;
@@ -245,3 +248,5 @@ namespace RFID_1._4
     }//Form1
 
 }//namespace
+
+
