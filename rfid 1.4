@@ -17,16 +17,17 @@ namespace RFID_1._4
             InitializeComponent();
         }
         int[][] arr = new int[100][];
-        int counter = 1;
+        int counter = 0;
+        string str = string.Empty;
         private void button1_Click(object sender, EventArgs e)
         {
             Random random = new Random();
             for (int i= 0;i< 100;i++)
             {
-                 string str = string.Empty;
-                 for (int j = 0; j < 8;j++)
+                str = string.Empty;
+                arr[i] = new int[8];
+                for (int j = 0; j < 8;j++)
                  {
-                    arr[i] = new int[8];
                     arr[i][j] = (random.Next()%2);
                     str += arr[i][j];
                  }
@@ -46,18 +47,20 @@ namespace RFID_1._4
 
         private void button2_Click(object sender, EventArgs e) //偶校验
         {
-            ListViewItem l2= new ListViewItem();
             int count1 = 0;
-            for(int i=0;i<100;i++)
+            for(int i=0; i<100; i++)
             {
-                for(int j=0;j<8;j++)
+                count1 = 0;
+                for(int j=0; j<8; j++)
                 {
-                    if (arr[i][j] == 1) count1++;
+                    if (arr[i][j] == 1) { count1++; }
                 }
+                ListViewItem l2 = new ListViewItem();
                 l2.Text = i.ToString();
                 if (count1 % 2 == 0)  l2.SubItems.Add("0"); 
                 else l2.SubItems.Add("1");
-                //listView2.Items.Add(l2);
+                l2.SubItems.Add(count1.ToString());
+                listView2.Items.Add(l2);
             }
         }
     }//Form1
