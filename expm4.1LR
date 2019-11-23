@@ -1,0 +1,645 @@
+#include <stdio.h>
+#include <ctype.h>
+#include <string.h>
+#include<math.h>
+#include<cstdlib>
+
+#define LETTER	0
+#define DIGIT	1
+#define POINT	2
+#define OTHER	3
+#define POWER	4
+#define PLUS	5
+#define  MINUS	6
+#define ClassNo 100 
+#define ClassOther 200
+#define EndState -1
+
+//# define ( 0		
+//# define ) 1		
+//# define + 2		
+//# define - 3	
+//# define * 4		
+//# define / 5		
+//# define i 6		
+//# define # 7		
+//# define E 8		
+//# define T 9			
+//# define F 10		
+
+int ACTION[16][8]={
+	{4,-1,-1,-1,-1,-1,5,-1},
+	{-1,-1,6,7,-1,-1,-1,100},
+	{-1,23,23,23,8,9,-1,23},
+	{-1,26,26,26,26,26,-1,26},
+	{4,-1,-1,-1,-1,-1,5,-1,},
+	{-1,28,28,28,28,28,-1,28},
+	{4,-1,-1,-1,-1,-1,5,-1},
+	{4,-1,-1,-1,-1,-1,5,-1},
+	{4,-1,-1,-1,-1,-1,5,-1},
+	{4,-1,-1,-1,-1,-1,5,-1},
+	{-1,15,6,7,-1,-1,-1,-1},
+	{-1,21,21,21,8,9,-1,21},
+	{-1,22,22,22,8,9,-1,22},
+	{-1,24,24,24,24,24,-1,24},
+	{-1,25,25,25,25,25,-1,25},
+	{-1,27,27,27,27,27,-1,27}
+	};
+
+int GOTO[16][3]={
+	{1,2,3},
+	{-1,-1,-1},
+	{-1,-1,-1},
+	{-1,-1,-1},
+	{10,2,3},
+	{-1,-1,-1},
+	{-1,11,3},
+	{-1,12,3},
+	{-1,-1,13},
+	{-1,-1,14},
+	{-1,-1,-1},
+	{-1,-1,-1},
+	{-1,-1,-1},
+	{-1,-1,-1},
+	{-1,-1,-1},
+	{-1,-1,-1}
+};
+
+int w, n, p, e, d;
+int Class;
+int ICON;
+double FCON;
+int ForI = 1000; //整型或浮点型标志
+static int CurrentState;
+char lc1;
+char lc2;
+char nextcha;
+int flag=5000; //正负标志
+char *stri;
+
+# define ID 0
+# define IF 1
+# define THEN 2
+# define ELSE 3
+# define WHILE 4
+# define BEGIN 5
+# define END 6
+# define INT 7
+# define FOR 8
+# define DO 9
+# define LT 10
+# define LE 11
+# define EQ 12
+# define NE 13
+# define GT 14
+# define GE 15
+# define IS 16
+# define PL 17
+# define MI 18
+# define MU 19
+# define DI 20
+# define AN 21 //增加逻辑运算符&，|
+# define OR 22
+# define LFBK 23
+# define RTBK 24
+
+# define S0 0
+# define S1 1
+# define S2 2
+# define S3 3
+# define S4 4
+# define S5 5
+# define S6 6
+# define S7 7
+# define S8 8
+# define S9 9
+# define S10 10
+# define S11 11
+# define S12 12
+# define S13 13
+# define S14 14
+# define S15 15
+
+#define MAX 20
+/* 建立保留字表 */
+#define MAX_KEY_NUMBER 20  /*关键字的数量*/
+#define KEY_WORD_END "waiting for your expanding"  /*关键字结束标记*/
+char *KeyWordTable[MAX_KEY_NUMBER]={ "if", "then", "else", "while", "begin", "end" , "int" , "for", "do" , KEY_WORD_END};
+/* 查保留字表，判断是否为关键字 */
+
+char TOKEN[MAX];
+int stacks[MAX];	//状态栈
+int s=0;			//index of stacks
+int as[MAX];
+int fa=0;
+int stackx[MAX];	//符号栈
+int x=0;			//index of stackx
+int ef=1000;		//语法error flag
+int wf=1000;		//词法error flag
+int TopStat,InpSym;
+int len=0;			//将规约的产生式右侧的长度
+int leng;			//输入串加#的长度
+int counter=1;		//步骤计算器
+char arr[MAX];
+int ai=0;
+int rf=0;			//reducation flag
+
+#define ERROR -1
+#define Acc 100
+
+extern void report_error(void);
+void scanner_example(FILE *fp,FILE *fw);
+int GetChar(int j);
+int EXECUTE(int state, int symbol,FILE* fw);
+int LEX(FILE *fp,FILE *fw,char cha);
+void report_error();
+int lookup(char *token);
+void out(int a,char*wordin);
+void Octa(FILE *fp,FILE *fw);
+int HandleOtherWord(void);
+int HandleError(void);
+
+char valuesta[MAX][10];
+int idxofv=0;
+typedef struct {
+				char name[MAX];
+                double val;
+				} idStr;
+idStr ids[MAX];
+int idxofid=0;
+int endflag=100;
+int lookupforid();
+int c=0;
+
+void controller(FILE *fp,FILE *ft,FILE *fw);	//驱动程序
+void push();									//进栈
+void advance(FILE *fp,FILE *fw);				//前进
+void act(int k);								//归约
+void change(int x,int y);						//输出符号栈
+void word(FILE *fp,FILE *fw);					//词法分析
+void readandputall(FILE *fp,FILE *ft);			//输出剩余串
+char res[5];
+int inr='1';
+
+void main()
+{
+	FILE *p,*w,*t;
+	p=fopen("test.txt", "r");
+	w=fopen("out.txt", "w");
+	stackx[0]=7;//#
+	x++;
+	//printf("步骤\t符号栈\t剩余串\n");//表头
+	char fir;
+	while ((fir = fgetc(p)) != EOF)
+	{
+		counter=1;
+		//inr='1';
+		for(int i=0;i<MAX;i++){
+			memset(valuesta[i],'\0', sizeof(valuesta[i]));
+		}
+		memset(stacks,'\0', sizeof(stacks));
+		memset(stackx,'\0',sizeof(stacks));
+		memset(as,'\0', sizeof(as));
+		printf("\n步骤\t\t符号栈\t\t剩余串\n");//表头
+		fseek(p,-1,1);
+		word(p,w);
+		strcpy(ids[idxofid].name,TOKEN);	
+		fgetc(p);
+		printf("(EQ, )\n");
+		controller(p,t,w);c++;
+		//ids[idxofid].val=valuesta[0];
+		printf("四元式：( = , %s , 0 , %s )\n",res,ids[idxofid].name);
+		idxofid++;
+	}
+	fclose(p);
+	fclose(w);
+}
+
+int lookupforid()
+{
+    float pro;
+	pro=1;
+	for(int i=0;i<idxofid;i++)
+	{
+		pro=strcmp(TOKEN,ids[i].name);
+		if(pro==0) return i;
+	}
+	return -1;
+}
+
+void readandputall(FILE *fp,FILE *ft)
+{
+	char getw;
+	int fc;
+	fc=0;									//文件字符计数,退指针用
+	if(rf==1&&as[fa-1]!=7) fseek(fp,-1,1);	//输出已经进行词法分析但未进入符号栈的字符
+	while ((getw = fgetc(fp)) != EOF) {
+		arr[ai]=getw;
+		ai++;
+		fc++;
+	}
+	fseek(fp,-fc,1);
+	if(rf==1&&as[fa-1]!=7) fseek(fp,1,1);	//还原指针位置
+	arr[ai]='#';	
+	printf("%s\n",arr);
+	for(int oo=0;oo<=ai;oo++){				//初始化arr
+		arr[oo]='\0';
+	}
+	ai=0;
+}
+
+void word(FILE *fp,FILE *fw)
+{
+	memset(TOKEN, 0, sizeof(TOKEN));
+	char con[20];
+	wf=0;
+	char fir;
+	//(fir = fgetc(fp)) != EOF||
+	while ((fir = fgetc(fp)) != ';') {
+		if (fir == ' '|| fir == '\r'|| fir == '\t'|| fir == '\n') continue; else if(fir!='#') fseek(fp,-1,1);
+		if(fir=='#') 
+		{
+			while(1)
+			{
+				fir = fgetc(fp);
+				if(fir=='#') 
+					break;
+			}
+			continue;//应回到循环最开始处，非继续执行
+		}
+		//if(fir==';') break;
+			scanner_example(fp,fw);
+			break;
+	}//while
+	if(fir==';'){as[fa]=7; fa++;}//fgets(con,20,fp);
+	if(wf==1) word(fp,fw);//如此次词法分析单词有误，输出error后略过，再次调用词法分析
+}
+
+void scanner_example(FILE *fp,FILE *fw)
+{
+	endflag=100;
+	char ch; int i, c;
+	ch = fgetc(fp);
+	if (ch>='a'&&ch<='z')  /*it must be a identifer!*/
+	{
+		TOKEN[0] = ch; ch = fgetc(fp); i = 1;
+		while ((ch >= 'a'&&ch <= 'z')|| (ch >= '0'&&ch <= '9'))
+		{
+			TOKEN[i] = ch; i++;
+				ch = fgetc(fp);
+		}
+		TOKEN[i] = '\0';
+		c = lookup(TOKEN);		
+		if (c == 0) {out(ID, TOKEN);strcpy(valuesta[idxofv],TOKEN);idxofv++;}else out(c, " "); 	
+		if(ch!=EOF)	fseek(fp, -1, 1); /* retract*/
+	}
+	else
+		if(ch == '0') Octa(fp,fw);
+
+		else if ((ch >= '1'&&ch <= '9')||ch == '.')
+		{
+			ICON=0;
+			FCON=0;
+			n = 0; p = 0; e = 0; w = 0;
+			LEX(fp,fw,ch);
+		}
+		else
+
+			switch (ch)
+			{
+			case '<': ch = fgetc(fp);
+				if (ch == '=') out(LE, " ");
+				else if (ch == '>') out(NE, " ");
+				else
+				{
+					if(ch!=EOF) fseek(fp, -1, 1); 
+					out(LT, " ");
+				}
+				break;
+			case ':': fseek(fp, 1, 1); out(IS, " "); break;
+			case '=': out(EQ, " "); break;
+			case '+': out(PL, " "); break;
+			case '*': out(MU, " "); break;
+			case '/': out(DI, " "); break;
+			case '&': out(AN, " "); break;
+			case '|': out(OR, " "); break;
+			case '(': out(LFBK, " "); break;
+			case ')': out(RTBK, " "); break;
+			case '>': ch = fgetc(fp);
+				if (ch == '=') out(GE, " ");
+				else
+				{
+					if(ch!=EOF) fseek(fp, -1, 1);
+					out(GT, " ");
+				}
+				break;
+			case '-':fseek(fp,-3,1); lc1=fgetc(fp); lc2=fgetc(fp);if(lc2=='='||lc2=='>'||lc2=='<'||lc2=='+'||lc2=='-'||lc2=='*'||lc2=='/'){flag=1; fseek(fp,1,1);ch=fgetc(fp);LEX(fp,fw,ch);} else {fseek(fp,-1,1);out(MI, " "); stri="(MI, )\n"; fputs(stri,fw);} break;
+			case';':break;
+			//endflag=1;fgets(con,20,fp);wf=1;
+			default: report_error(); break;
+			}
+	return;
+}
+
+int GetChar(int j)
+{
+	int c;
+	c = TOKEN[j];
+	if (c >= '0'&&c <= '9') { d = c - '0'; return DIGIT;}
+	if (c == '.') return POINT;
+	if (c == 'E' || c == 'e') return POWER;
+	if (c == '+') return PLUS;
+	if (c == '-') return MINUS;
+	return OTHER;
+}
+int EXECUTE(int state, int symbol,FILE* fw)
+{
+	switch (state)
+	{
+	case 0: switch (symbol)
+	{
+	case DIGIT:n = 0; p = 0; e = 1; w = d; CurrentState = 1; Class = ClassNo; break;
+	case POINT:w = 0; n = 0; p = 0; e = 1; CurrentState = 3; Class = ClassNo; break;
+	default: HandleOtherWord(); Class = ClassOther;
+		CurrentState = EndState;
+	}
+			break;
+	case 1: switch (symbol)
+	{
+	case DIGIT:w = w * 10 + d; break;
+	case POINT:CurrentState = 2;  break;
+	case POWER:CurrentState = 4; break;
+	default: ICON = w; CurrentState = EndState; if(flag==1) {ICON*=-1; flag=5000;} printf("(INT,%d)\n", ICON); as[fa]=6;  itoa(ICON,valuesta[idxofv],10); idxofv++; fa++; fprintf(fw,"(INT,%d)\n",ICON);
+	}
+			break;
+	case 2: switch (symbol)
+	{
+	case DIGIT:n++; w = w * 10 + d; break;
+	case POWER:CurrentState = 4; break;
+	default: FCON = w * pow(10, e*p - n); CurrentState = EndState; if(flag==1) {FCON*=-1; flag=5000;} printf("(REAL,%g)\n", FCON);  as[fa]=6; gcvt(FCON,5,valuesta[idxofv]); idxofv++; fa++; fprintf(fw,"(REAL,%g)\n",FCON);
+	}
+			break;
+	case 3:switch (symbol)
+	{
+	case DIGIT:n++; w = w * 10 + d; CurrentState = 2; break;
+	default: HandleError(); CurrentState = EndState;
+	}
+		   break;
+	case 4:switch (symbol)
+	{
+	case DIGIT:p = p * 10 + d; CurrentState = 6; break;
+	case MINUS:e = -1; CurrentState = 5; break;
+	case PLUS:CurrentState = 5; break;
+	default:HandleError(); CurrentState = EndState;
+	}
+		   break;
+	case 5:switch (symbol)
+	{
+	case DIGIT:p = p * 10 + d; CurrentState = 6; break;
+	default:HandleError(); CurrentState = EndState;
+	}
+		   break;
+	case 6:switch (symbol)
+	{
+	case DIGIT:p = p * 10 + d; break;
+	default:FCON = w * pow(10, e*p - n); CurrentState = EndState; if(flag==1) {FCON*=-1; flag=5000;} printf("(REAL,%g)\n", FCON); as[fa]=6;  gcvt(FCON,5,valuesta[idxofv]); idxofv++; fa++; fprintf(fw,"(REAL,%g)\n",FCON);
+	}
+		   break;
+	}
+	return CurrentState;
+}
+int LEX(FILE *fp,FILE *fw,char cha)
+{
+	for(int y=0;y<MAX;y++)
+	{
+		TOKEN[y]='\0';
+	}
+	int i = 0;
+	for (int j = 0;; j++) {
+		if ((cha <= '9'&&cha >= '0') || cha=='E'|| cha=='-'|| cha=='.')
+		{
+			TOKEN[i] = cha;
+			i++;
+			cha = fgetc(fp);
+		}
+		else break;
+	}
+	int ch;
+	CurrentState = 0;
+	j = 0;
+	while (CurrentState != EndState)
+	{
+		ch = GetChar(j);
+		//ICON=0;
+		//FCON=0;
+		EXECUTE(CurrentState, ch,fw);
+		j++;
+	}
+	if(cha!=EOF)
+		fseek(fp, -1, 1);
+	return Class;
+}
+
+int lookup(char *token)
+{
+	int n = 0;
+	while (strcmp(KeyWordTable[n], KEY_WORD_END)) /*strcmp比较两串是否相同，若相同返回0*/
+	{
+		if (!strcmp(KeyWordTable[n], token)) /*比较token所指向的关键字和保留字表中哪个关键字相符*/
+		{
+			return n + 1; /*根据单词分类码表I，设置正确的关键字类别码，并返回此类别码的值*/
+			break;
+		}
+		n++;
+	}
+	return 0; /*单词不是关键字，而是标识符*/
+}
+
+void out(int a,char*wordin)
+{
+	switch(a)
+	{
+		case ID:printf("(ID,%s)\n",wordin); as[fa]=6; fa++; break; 
+		case LT:printf("(LT,%s)\n",wordin);break;
+		case LE:printf("(LE,%s)\n",wordin);break;
+		case EQ:printf("(EQ,%s)\n",wordin);break;
+		case NE:printf("(NE,%s)\n",wordin);break;
+		case GT:printf("(GT,%s)\n",wordin);break;
+		case GE:printf("(GE,%s)\n",wordin);break;
+		case IS:printf("(IS,%s)\n",wordin);break;
+		case PL:printf("(PL,%s)\n",wordin); as[fa]=2; fa++; break;
+		case MI:printf("(MI,%s)\n",wordin); as[fa]=3; fa++; break;
+		case MU:printf("(MU,%s)\n",wordin); as[fa]=4; fa++; break;
+		case AN:printf("(AN,%s)\n",wordin);break;
+		case OR:printf("(OR,%s)\n",wordin);break;
+		case DI:printf("(DI,%s)\n",wordin); as[fa]=5; fa++; break;
+		case IF:printf("(IF,%s)\n",wordin);break;
+		case THEN:printf("(THEN,%s)\n",wordin);break;
+		case ELSE:printf("(ELSE,%s)\n",wordin);break;
+		case WHILE:printf("(WHILE,%s)\n",wordin);break;
+		case BEGIN:printf("(BEGIN,%s)\n",wordin);break;
+		case END:printf("(END,%s)\n",wordin);break;
+		case INT:printf("(INT,%s)\n",wordin);break;
+		case FOR:printf("(FOR,%s)\n",wordin);break;
+		case DO:printf("(DO,%s)\n",wordin);break;
+		case LFBK:printf("(LFBK,%s)\n",wordin); as[fa]=0; fa++; break;
+		case RTBK:printf("(RTBK,%s)\n",wordin); as[fa]=1; fa++; break;
+	}
+}
+
+void Octa(FILE *fp,FILE *fw)
+{
+	int j=0;
+	int i=0;
+	int sum=0;
+	char cha = fgetc(fp);
+	char wordin[20];
+	for(j=0;;j++){
+		if(cha <= '7' && cha >= '0'){
+			wordin[i] = cha-'0';
+			cha = fgetc(fp);
+			i++;
+		}
+		else break;
+	}
+	i--;
+	int c=i;
+	j=0;
+	for(;i>=0;i--){
+		wordin[i]*=pow(8,j);
+		j++;
+	}
+	for(i=0;i<=c;i++){
+		sum+=wordin[i];
+	}
+    fprintf(fw,"(OCTAL,%d)\n",sum);
+	printf("(OCTAL,%d)\n",sum);
+}
+
+void controller(FILE *fp,FILE *ft,FILE *fw)
+{	
+	//memset(stacks,'\0', sizeof(stacks));
+	//memset(stackx,'\0', sizeof(stackx));
+	//memset(as,'\0', sizeof(as));
+	ef=100;
+	stacks[s]=0;
+	TopStat=stacks[s];
+	s++;
+	fa=0;
+	word(fp,fw);
+	InpSym=as[fa-1];
+	while(ACTION[TopStat][InpSym]!=Acc)
+	{
+		rf=0;
+		if(ACTION[TopStat][InpSym]==ERROR)
+		{
+			printf("Grammar Error!\n");
+			ef=1;
+			break;
+		}
+		else if(ACTION[TopStat][InpSym]<=15&&ACTION[TopStat][InpSym]>=0)
+			{
+				push();
+				change(0,x);
+				readandputall(fp,ft);
+				advance(fp,fw);
+			}
+			else if(ACTION[TopStat][InpSym]<=28&&ACTION[TopStat][InpSym]>=21)
+				{
+					rf=1;
+					act(ACTION[TopStat][InpSym]-20);
+					change(0,x-1);
+					readandputall(fp,ft);
+				}
+	}
+	if(ef==1) printf("输入串有误，分析失败\n");
+	//else printf("Succeed!\n");//accept();
+}
+
+void push()//进栈
+{
+	stacks[s]=ACTION[TopStat][InpSym];
+	stackx[x]=InpSym;
+}
+
+void advance(FILE *fp,FILE *fw)//前进
+{
+	TopStat=stacks[s];
+	word(fp,fw);
+	InpSym=as[fa-1];
+	s++;
+	x++;
+}
+
+void act(int k)//归约
+{
+	res[0]='R';
+	switch(k)
+	{
+		case 1:len=3; x-=len; stackx[x]=8; res[1]=inr; inr++; printf("\n四元式：( + , %s , %s , %s )\n",valuesta[idxofv-2],valuesta[idxofv-1],res); strcpy(valuesta[idxofv-2],res); idxofv-=1; break;//	+
+		case 2:len=3; x-=len; stackx[x]=8; res[1]=inr; inr++; printf("\n四元式：( - , %s , %s , %s )\n",valuesta[idxofv-2],valuesta[idxofv-1],res); strcpy(valuesta[idxofv-2],res); idxofv-=1; break;//	-
+		case 3:len=1; x-=len; stackx[x]=8; break;		//
+		case 4:len=3; x-=len; stackx[x]=9; res[1]=inr; inr++; printf("\n四元式：( * , %s , %s , %s )\n",valuesta[idxofv-2],valuesta[idxofv-1],res); strcpy(valuesta[idxofv-2],res); idxofv-=1; break;//	*
+		case 5:len=3; x-=len; stackx[x]=9; res[1]=inr; inr++; printf("\n四元式：( / , %s , %s , %s )\n",valuesta[idxofv-2],valuesta[idxofv-1],res); strcpy(valuesta[idxofv-2],res); idxofv-=1; break;//	/
+		case 6:len=1; x-=len; stackx[x]=9; break;		//
+		case 7:len=3; x-=len; stackx[x]=10;break;		//
+		case 8:len=1; x-=len; stackx[x]=10;break;		//
+	}		
+
+	for(int j=1;j<=len;j++)
+	{
+		stacks[s-len]=0;
+	}
+	s=s-len;
+	stacks[s]=GOTO[stacks[s-1]][stackx[x]-8];
+	TopStat=stacks[s];
+	InpSym=as[fa-1];
+	s++;
+	x++;
+
+}
+
+void change(int x,int y)//输出符号栈
+{
+	char sta[20];
+	for(int ee=0;ee<20;ee++)
+	{
+		sta[ee]='\0';
+	}
+	int ta;
+	ta=0;
+	stackx[x+c]=7;
+	for(ee=x+c;ee<=y;ee++){
+		switch(stackx[ee]){
+			case 0:sta[ta]='('; ta++; break;
+			case 1:sta[ta]=')'; ta++; break;
+			case 2:sta[ta]='+'; ta++; break;
+			case 3:sta[ta]='-'; ta++; break;
+			case 4:sta[ta]='*'; ta++; break;
+			case 5:sta[ta]='/'; ta++; break;
+			case 6:sta[ta]='i'; ta++; break;
+			case 7:sta[ta]='#'; ta++; break;
+			case 8:sta[ta]='E'; ta++; break;
+			case 9:sta[ta]='T'; ta++; break;
+			case 10:sta[ta]='F'; ta++; break;
+		}	
+	}
+	printf("%d\t\t%s\t\t",counter,sta);
+	counter++;
+}
+
+void report_error()
+{
+	wf=1;
+	printf("Word Error!\n");
+}
+
+int HandleOtherWord(void)
+{
+	return ClassOther;
+}
+int HandleError(void)
+{
+	printf("Error\n");
+	return 0;
+}
