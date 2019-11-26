@@ -44,6 +44,7 @@ namespace RFID_1._4
 
         private void button5_Click(object sender, EventArgs e)//偶校验
         {
+            counter = 0;
             Random random = new Random();
             for (int i = 0; i < 100; i++)
             {
@@ -84,6 +85,7 @@ namespace RFID_1._4
         }*/
         private void button7_Click(object sender, EventArgs e)
         {
+            counter = 0;
             Random random = new Random();
             for (int i = 0; i < 100; i++)
             {
@@ -104,6 +106,7 @@ namespace RFID_1._4
 
         private void button3_Click_1(object sender, EventArgs e)//海明
         {
+            counter = 0;
             {
                 int r1 = 0, r2 = 0, r3 = 0, r4 = 0;
                 for (int i = 0; i < 100; i++)
@@ -147,6 +150,7 @@ namespace RFID_1._4
 
         private void button2_Click_1(object sender, EventArgs e)//偶校验
         {
+            counter = 0;
             {
                 int count1 = 0;
                 for (int i = 0; i < 100; i++)
@@ -271,7 +275,7 @@ namespace RFID_1._4
 
         private void button8_Click(object sender, EventArgs e)//奇偶校验接收
         {
-            int[] flag2 = new int[100];
+            int[] flag2 = new int[100];//出错记录
             Random random = new Random();
             float sum = 0;
             for (int i = 0; i < 100; i++)//1/100的出错率
@@ -279,8 +283,7 @@ namespace RFID_1._4
                 for (int j = 0; j < 8; j++)
                 {
                     int f = random.Next() % 100;
-                    if (f == 50) { arr[i][j] = 1; flag2[i] = 1; }
-                    else flag2[i] = 0;
+                    if (f == 50) { arr[i][j] = 1-arr[i][j]; flag2[i] += 1; }
                 }
             }
             int count1 = 0;
@@ -305,7 +308,7 @@ namespace RFID_1._4
                 else { l2.SubItems.Add("1"); }
                 if (flag == arr[i][8] && flag2[i] == 0) l2.SubItems.Add("√");
                 else if (flag != arr[i][8]) { l2.SubItems.Add("×"); sum++; }
-                else if (flag == arr[i][8] && flag2[i] == 1) { l2.SubItems.Add("实际有误"); sum++; }
+                else if (flag == arr[i][8] && flag2[i] > 0 ) { l2.SubItems.Add("实际有误"); sum++; }
                 listView8.Items.Add(l2);
             }
             sum = 100-sum;
@@ -325,7 +328,7 @@ namespace RFID_1._4
                 for (int j = 0; j < 12; j++)
                 {
                     int f = random.Next() % 100;
-                    if (f == 50) { arr[i][j] = 1; }
+                    if (f == 50) { arr[i][j] = 1 - arr[i][j]; }
                 }
                 ListViewItem l2 = new ListViewItem();
                 l2.Text = i.ToString();
@@ -358,6 +361,7 @@ namespace RFID_1._4
                     }
                     l2.SubItems.Add(str);
                 }
+                else { str = string.Empty; l2.SubItems.Add(str); }
                 l2.SubItems.Add(sum.ToString()); 
                 listView9.Items.Add(l2);
             }
@@ -449,4 +453,5 @@ namespace RFID_1._4
     }//Form1
 
 }//namespace
+
 
