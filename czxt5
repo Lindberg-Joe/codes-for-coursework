@@ -110,16 +110,16 @@ int findHPjob(int ctime)
 {
 	int re=-1;
 	int p;
-	int lastp=0;
+	int lastp=-1;
 	p=0;
-	lastp=0;
+	lastp=-1;
 	for(int i=0;i<quantity;i++)
 	{
 		if(jobs[i].reach_time<=ctime&&jobs[i].visited==0)
 		{
 				p=jobs[i].privilege;
 				if(p>lastp) {lastp=p; re=i;}
-				
+				else continue;
 		}
 	}
 	return re;
