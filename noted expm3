@@ -120,7 +120,7 @@ char *stri;
 # define S14 14
 # define S15 15
 
-#define MAX 20
+#define MAX 50
 /* 建立保留字表 */
 #define MAX_KEY_NUMBER 20  /*关键字的数量*/
 #define KEY_WORD_END "waiting for your expanding"  /*关键字结束标记*/
@@ -163,10 +163,12 @@ char valuesta[MAX][10];
 int idxofv=0;
 typedef struct {
 				char name[MAX];
-                double val;
-				} idStr;
-idStr ids[MAX];
+                char val[MAX];
+				} vaStr;
+vaStr ids[MAX];
 int idxofid=0;
+vaStr results[MAX];
+int idxofres=0; 
 int endflag=100;
 int lookupforid();
 int c=0;
@@ -178,6 +180,10 @@ void act(int k);								//归约出栈
 void change(int x,int y);						//输出符号栈
 void word(FILE *fp,FILE *fw);					//词法分析
 void readandputall(FILE *fp,FILE *ft);			//输出文件中剩余串
+void subforadd();
+void subformin();
+void subformul();
+void subfordif();
 char res[5];
 int inr='1';
 
@@ -188,15 +194,11 @@ void main()
 	w=fopen("out.txt", "w");
 	stackx[0]=7;//#
 	x++;
-	//printf("步骤\t符号栈\t剩余串\n");//表头
 	char fir;
 	while ((fir = fgetc(p)) != EOF)
 	{
 		counter=1;
-		//inr='1';
-		for(int i=0;i<MAX;i++){
-			memset(valuesta[i],'\0', sizeof(valuesta[i]));
-		}
+		memset(valuesta,NULL, sizeof(valuesta));
 		memset(stacks,'\0', sizeof(stacks));
 		memset(stackx,'\0',sizeof(stacks));
 		memset(as,'\0', sizeof(as));
@@ -207,7 +209,7 @@ void main()
 		fgetc(p);
 		printf("(EQ, )\n");
 		controller(p,t,w);c++;
-		//ids[idxofid].val=valuesta[0];
+		strcpy(ids[idxofid].val,valuesta[0]);
 		printf("四元式：( = , %s , 0 , %s )\n",res,ids[idxofid].name);
 		idxofid++;
 	}
@@ -514,6 +516,7 @@ void Octa(FILE *fp,FILE *fw)		//识别八进制符号
 	}
     fprintf(fw,"(OCTAL,%d)\n",sum);
 	printf("(OCTAL,%d)\n",sum);
+	fseek(fp, -1, 1);
 }
 
 void controller(FILE *fp,FILE *ft,FILE *fw)		//LR分析表驱动程序
@@ -576,11 +579,11 @@ void act(int k)//归约
 	res[0]='R';
 	switch(k)//k为产生式编号
 	{
-		case 1:len=3; x-=len; stackx[x]=8; res[1]=inr; inr++; printf("\n四元式：( + , %s , %s , %s )\n",valuesta[idxofv-2],valuesta[idxofv-1],res); strcpy(valuesta[idxofv-2],res); idxofv-=1; break;//	+
-		case 2:len=3; x-=len; stackx[x]=8; res[1]=inr; inr++; printf("\n四元式：( - , %s , %s , %s )\n",valuesta[idxofv-2],valuesta[idxofv-1],res); strcpy(valuesta[idxofv-2],res); idxofv-=1; break;//	-
+		case 1:len=3; x-=len; stackx[x]=8; subforadd(); break;//	+
+		case 2:len=3; x-=len; stackx[x]=8; subformin(); break;//	-
 		case 3:len=1; x-=len; stackx[x]=8; break;		//
-		case 4:len=3; x-=len; stackx[x]=9; res[1]=inr; inr++; printf("\n四元式：( * , %s , %s , %s )\n",valuesta[idxofv-2],valuesta[idxofv-1],res); strcpy(valuesta[idxofv-2],res); idxofv-=1; break;//	*
-		case 5:len=3; x-=len; stackx[x]=9; res[1]=inr; inr++; printf("\n四元式：( / , %s , %s , %s )\n",valuesta[idxofv-2],valuesta[idxofv-1],res); strcpy(valuesta[idxofv-2],res); idxofv-=1; break;//	/
+		case 4:len=3; x-=len; stackx[x]=9; subformul(); break;//	*
+		case 5:len=3; x-=len; stackx[x]=9; subfordif(); break;//	/
 		case 6:len=1; x-=len; stackx[x]=9; break;		//
 		case 7:len=3; x-=len; stackx[x]=10;break;		//
 		case 8:len=1; x-=len; stackx[x]=10;break;		//
@@ -597,6 +600,70 @@ void act(int k)//归约
 	s++;
 	x++;
 
+}
+
+void subforadd()
+{
+	res[1]=inr; 
+	inr++; 
+	char temp[10];
+	printf("\n四元式：( + , %s , %s , %s )\n",valuesta[idxofv-2],valuesta[idxofv-1],res); 
+	strcpy(results[idxofres].name,res); 
+	strcpy(temp,valuesta[idxofv-2]);
+	strcat(temp,"+");
+	strcat(temp,valuesta[idxofv-1]);
+	strcpy(results[idxofres].val,temp); 
+	strcpy(valuesta[idxofv-2],res);
+	idxofres++;
+	idxofv-=1; 
+}
+
+void subformin()
+{
+	res[1]=inr; 
+	inr++; 
+	char temp[10];
+	printf("\n四元式：( - , %s , %s , %s )\n",valuesta[idxofv-2],valuesta[idxofv-1],res); 
+	strcpy(results[idxofres].name,res); 
+	strcpy(temp,valuesta[idxofv-2]);
+	strcat(temp,"-");
+	strcat(temp,valuesta[idxofv-1]);
+	strcpy(results[idxofres].val,temp); 
+	strcpy(valuesta[idxofv-2],res);
+	idxofres++;
+	idxofv-=1; 
+}
+
+void subformul()
+{
+	res[1]=inr; 
+	inr++; 
+	char temp[10];
+	printf("\n四元式：( * , %s , %s , %s )\n",valuesta[idxofv-2],valuesta[idxofv-1],res); 
+	strcpy(results[idxofres].name,res); 
+	strcpy(temp,valuesta[idxofv-2]);
+	strcat(temp,"*");
+	strcat(temp,valuesta[idxofv-1]);
+	strcpy(results[idxofres].val,temp); 
+	strcpy(valuesta[idxofv-2],res);
+	idxofres++;
+	idxofv-=1; 
+}
+
+void subfordif()
+{
+	res[1]=inr; 
+	inr++; 
+	char temp[10];
+	printf("\n四元式：( / , %s , %s , %s )\n",valuesta[idxofv-2],valuesta[idxofv-1],res); 
+	strcpy(results[idxofres].name,res); 
+	strcpy(temp,valuesta[idxofv-2]);
+	strcat(temp,"/");
+	strcat(temp,valuesta[idxofv-1]);
+	strcpy(results[idxofres].val,temp); 
+	strcpy(valuesta[idxofv-2],res);
+	idxofres++;
+	idxofv-=1; 
 }
 
 void change(int x,int y)//输出符号栈
