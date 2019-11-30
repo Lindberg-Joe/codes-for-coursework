@@ -130,8 +130,7 @@ char *KeyWordTable[MAX_KEY_NUMBER]={ "if", "then", "else", "while", "begin", "en
 char TOKEN[MAX];
 int stacks[MAX];	//状态栈
 int s=0;			//index of stacks状态栈指针
-int as[MAX];		//已读单词栈，保存已读单词，此栈中内容不会因归约改变
-int fa=0;			//index of as
+int as;				//保存刚刚进行词法分析的单词
 int stackx[MAX];	//符号栈
 int x=0;			//index of stackx
 int ef=1000;		//语法错误标志error flag
@@ -169,8 +168,7 @@ vaStr ids[MAX];		//变量栈
 int idxofid=0;		//index of ids
 vaStr results[MAX];	//中间结果栈
 int idxofres=0;		//index of results
-int endflag=100;
-//int lookupforid();//查变量表函数，由于个人能力有限，未能完成，本程序目前无法实现变量查表功能
+int lookupforid();	//查变量表函数
 int c=0;
 
 void controller(FILE *fp,FILE *ft,FILE *fw);	//驱动程序
@@ -180,6 +178,7 @@ void act(int k);								//归约出栈
 void change(int x,int y);						//输出符号栈
 void word(FILE *fp,FILE *fw);					//词法分析
 void readandputall(FILE *fp,FILE *ft);			//输出文件中剩余串
+void wordforids(FILE *fp,FILE *fw);				//填变量表函数
 void subforadd();	//加法生成式归约子程序
 void subformin();	//减法生成式归约子程序
 void subformul();	//乘法生成式归约子程序
@@ -201,10 +200,10 @@ void main()
 		memset(valuesta,NULL, sizeof(valuesta));//初始化各个栈
 		memset(stacks,'\0', sizeof(stacks));
 		memset(stackx,'\0',sizeof(stacks));
-		memset(as,'\0', sizeof(as));
+		as=0;
 		printf("\n步骤\t\t符号栈\t\t剩余串\n");//打印表头
 		fseek(p,-1,1);
-		word(p,w);
+		wordforids(p,w);//填表
 		strcpy(ids[idxofid].name,TOKEN);	
 		fgetc(p);
 		printf("(EQ, )\n");
@@ -217,9 +216,9 @@ void main()
 	fclose(w);
 }
 
-int lookupforid()
+int lookupforid()//查变量表函数，如变量存在，返回在变量栈中的位置，如不存在，返回-1
 {
-    float pro;
+    int pro;
 	pro=1;
 	for(int i=0;i<idxofid;i++)
 	{
@@ -234,17 +233,17 @@ void readandputall(FILE *fp,FILE *ft)		//输出文件中剩余串
 	char getw;
 	int fc;
 	fc=0;		//文件字符计数,退指针用file char counter
-	if(rf==1&&as[fa-1]!=7) fseek(fp,-1,1);	//输出已经进行词法分析但未进入符号栈的字符
+	if(rf==1&&as!=7) fseek(fp,-1,1);	//输出已经进行词法分析但未进入符号栈的字符
 	while ((getw = fgetc(fp)) != EOF) {
 		arr[ai]=getw;
 		ai++;
 		fc++;
 	}
 	fseek(fp,-fc,1);
-	if(rf==1&&as[fa-1]!=7) fseek(fp,1,1);	//还原指针位置
+	if(rf==1&&as!=7) fseek(fp,1,1);	//还原指针位置
 	arr[ai]='#';	
 	printf("%s\n",arr);
-	for(int oo=0;oo<=ai;oo++){				//初始化arr
+	for(int oo=0;oo<=ai;oo++){		//初始化arr
 		arr[oo]='\0';
 	}
 	ai=0;
@@ -256,7 +255,6 @@ void word(FILE *fp,FILE *fw)//词法分析函数，一次读一个单词
 	char con[20];
 	wf=0;
 	char fir;
-	//(fir = fgetc(fp)) != EOF||
 	while ((fir = fgetc(fp)) != ';') {
 		if (fir == ' '|| fir == '\r'|| fir == '\t'|| fir == '\n') continue; else if(fir!='#') fseek(fp,-1,1);
 		if(fir=='#') //删除以#开头以#结尾的注释
@@ -269,17 +267,15 @@ void word(FILE *fp,FILE *fw)//词法分析函数，一次读一个单词
 			}
 			continue;//应回到循环最开始处，非继续执行
 		}
-		//if(fir==';') break;
 			scanner_example(fp,fw);
 			break;
 	}//while
-	if(fir==';'){as[fa]=7; fa++;}//fgets(con,20,fp);
+	if(fir==';') as=7;
 	if(wf==1) word(fp,fw);//如此次词法分析单词有误，输出error后再次调用词法分析，略过错误单词
 }
 
 void scanner_example(FILE *fp,FILE *fw)
 {
-	endflag=100;
 	char ch; int i, c;
 	ch = fgetc(fp);
 	if (ch>='a'&&ch<='z')  /*it must be a identifer!*/
@@ -292,7 +288,13 @@ void scanner_example(FILE *fp,FILE *fw)
 		}
 		TOKEN[i] = '\0';
 		c = lookup(TOKEN);		
-		if (c == 0) {out(ID, TOKEN);strcpy(valuesta[idxofv],TOKEN);idxofv++;}else out(c, " "); 	
+		if (c == 0) 
+		{
+			out(ID, TOKEN);
+			c=lookupforid();//查表，如存在使该变量的值入栈，如不存在报变量未定义错误，用变量名代替值入栈
+			if(c==-1) {printf("Undefined id %s!\n",TOKEN); strcpy(valuesta[idxofv],TOKEN);idxofv++;}
+			else {strcpy(valuesta[idxofv],ids[c].val);idxofv++;}
+		}else out(c, " "); 	
 		if(ch!=EOF)	fseek(fp, -1, 1); /* retract*/
 	}
 	else
@@ -337,7 +339,6 @@ void scanner_example(FILE *fp,FILE *fw)
 				break;//判断‘-’是负号还是减号
 			case '-':fseek(fp,-3,1); lc1=fgetc(fp); lc2=fgetc(fp);if(lc2=='='||lc2=='>'||lc2=='<'||lc2=='+'||lc2=='-'||lc2=='*'||lc2=='/'){flag=1; fseek(fp,1,1);ch=fgetc(fp);LEX(fp,fw,ch);} else {fseek(fp,-1,1);out(MI, " "); stri="(MI, )\n"; fputs(stri,fw);} break;
 			case';':break;
-			//endflag=1;fgets(con,20,fp);wf=1;
 			default: report_error(); break;
 			}
 	return;
@@ -371,14 +372,14 @@ int EXECUTE(int state, int symbol,FILE* fw)
 	case DIGIT:w = w * 10 + d; break;
 	case POINT:CurrentState = 2;  break;
 	case POWER:CurrentState = 4; break;
-	default: ICON = w; CurrentState = EndState; if(flag==1) {ICON*=-1; flag=5000;} printf("(INT,%d)\n", ICON); as[fa]=6;  itoa(ICON,valuesta[idxofv],10); idxofv++; fa++; fprintf(fw,"(INT,%d)\n",ICON);
+	default: ICON = w; CurrentState = EndState; if(flag==1) {ICON*=-1; flag=5000;} printf("(INT,%d)\n", ICON); as=6;  itoa(ICON,valuesta[idxofv],10); idxofv++;  fprintf(fw,"(INT,%d)\n",ICON);
 	}
 			break;
 	case 2: switch (symbol)
 	{
 	case DIGIT:n++; w = w * 10 + d; break;
 	case POWER:CurrentState = 4; break;
-	default: FCON = w * pow(10, e*p - n); CurrentState = EndState; if(flag==1) {FCON*=-1; flag=5000;} printf("(REAL,%g)\n", FCON);  as[fa]=6; gcvt(FCON,5,valuesta[idxofv]); idxofv++; fa++; fprintf(fw,"(REAL,%g)\n",FCON);
+	default: FCON = w * pow(10, e*p - n); CurrentState = EndState; if(flag==1) {FCON*=-1; flag=5000;} printf("(REAL,%g)\n", FCON);  as=6; gcvt(FCON,5,valuesta[idxofv]); idxofv++; fprintf(fw,"(REAL,%g)\n",FCON);
 	}
 			break;
 	case 3:switch (symbol)
@@ -404,7 +405,7 @@ int EXECUTE(int state, int symbol,FILE* fw)
 	case 6:switch (symbol)
 	{
 	case DIGIT:p = p * 10 + d; break;
-	default:FCON = w * pow(10, e*p - n); CurrentState = EndState; if(flag==1) {FCON*=-1; flag=5000;} printf("(REAL,%g)\n", FCON); as[fa]=6;  gcvt(FCON,5,valuesta[idxofv]); idxofv++; fa++; fprintf(fw,"(REAL,%g)\n",FCON);
+	default:FCON = w * pow(10, e*p - n); CurrentState = EndState; if(flag==1) {FCON*=-1; flag=5000;} printf("(REAL,%g)\n", FCON); as=6;  gcvt(FCON,5,valuesta[idxofv]); idxofv++; fprintf(fw,"(REAL,%g)\n",FCON);
 	}
 		   break;
 	}
@@ -455,11 +456,28 @@ int lookup(char *token)
 	return 0; /*单词不是关键字，而是标识符*/
 }
 
+void wordforids(FILE *fp,FILE *fw)
+{
+	char ch; int i, c;
+	ch = fgetc(fp);
+	if (ch>='a'&&ch<='z')  /*it must be a identifer!*/
+	{
+		TOKEN[0] = ch; ch = fgetc(fp); i = 1;
+		while ((ch >= 'a'&&ch <= 'z')|| (ch >= '0'&&ch <= '9'))
+		{
+			TOKEN[i] = ch; i++;
+				ch = fgetc(fp);
+		}
+		TOKEN[i] = '\0';
+		if(ch!=EOF)	fseek(fp, -1, 1); /* retract*/
+	}
+}
+
 void out(int a,char*wordin)		//输出词法分析结果
 {
 	switch(a)
 	{
-		case ID:printf("(ID,%s)\n",wordin); as[fa]=6; fa++; break; //代表变量名的数值进入单词栈
+		case ID:printf("(ID,%s)\n",wordin); as=6; break; //存储代表变量名的数值
 		case LT:printf("(LT,%s)\n",wordin);break;
 		case LE:printf("(LE,%s)\n",wordin);break;
 		case EQ:printf("(EQ,%s)\n",wordin);break;
@@ -467,12 +485,12 @@ void out(int a,char*wordin)		//输出词法分析结果
 		case GT:printf("(GT,%s)\n",wordin);break;
 		case GE:printf("(GE,%s)\n",wordin);break;
 		case IS:printf("(IS,%s)\n",wordin);break;
-		case PL:printf("(PL,%s)\n",wordin); as[fa]=2; fa++; break; //代表‘+’的数值进入单词栈
-		case MI:printf("(MI,%s)\n",wordin); as[fa]=3; fa++; break; //代表‘-’的数值进入单词栈
-		case MU:printf("(MU,%s)\n",wordin); as[fa]=4; fa++; break; //代表‘*’的数值进入单词栈
+		case PL:printf("(PL,%s)\n",wordin); as=2;  break; //存储代表‘+’的数值
+		case MI:printf("(MI,%s)\n",wordin); as=3;  break; //存储代表‘-’的数值
+		case MU:printf("(MU,%s)\n",wordin); as=4;  break; //存储代表‘*’的数值
 		case AN:printf("(AN,%s)\n",wordin);break;
 		case OR:printf("(OR,%s)\n",wordin);break;
-		case DI:printf("(DI,%s)\n",wordin); as[fa]=5; fa++; break; //代表‘/’的数值进入单词栈
+		case DI:printf("(DI,%s)\n",wordin); as=5; break; //存储代表‘/’的数值
 		case IF:printf("(IF,%s)\n",wordin);break;
 		case THEN:printf("(THEN,%s)\n",wordin);break;
 		case ELSE:printf("(ELSE,%s)\n",wordin);break;
@@ -482,8 +500,8 @@ void out(int a,char*wordin)		//输出词法分析结果
 		case INT:printf("(INT,%s)\n",wordin);break;
 		case FOR:printf("(FOR,%s)\n",wordin);break;
 		case DO:printf("(DO,%s)\n",wordin);break;
-		case LFBK:printf("(LFBK,%s)\n",wordin); as[fa]=0; fa++; break; //代表‘(‘的数值进入单词栈
-		case RTBK:printf("(RTBK,%s)\n",wordin); as[fa]=1; fa++; break; //代表‘)’的数值进入单词栈
+		case LFBK:printf("(LFBK,%s)\n",wordin); as=0; break; //存储代表‘(‘的数值
+		case RTBK:printf("(RTBK,%s)\n",wordin); as=1; break; //存储代表‘)’的数值
 	}
 }
 
@@ -523,9 +541,8 @@ void controller(FILE *fp,FILE *ft,FILE *fw)		//LR分析表驱动程序
 	stacks[s]=0;
 	TopStat=stacks[s];
 	s++;
-	fa=0;
 	word(fp,fw);//第一次调用词法分析程序
-	InpSym=as[fa-1];
+	InpSym=as;
 	while(ACTION[TopStat][InpSym]!=Acc)
 	{
 		rf=0;
@@ -563,7 +580,7 @@ void advance(FILE *fp,FILE *fw)//移进
 {
 	TopStat=stacks[s];
 	word(fp,fw);//调用词法分析程序
-	InpSym=as[fa-1];
+	InpSym=as;
 	s++;
 	x++;
 }
@@ -590,10 +607,9 @@ void act(int k)//归约
 	s=s-len;
 	stacks[s]=GOTO[stacks[s-1]][stackx[x]-8];
 	TopStat=stacks[s];
-	InpSym=as[fa-1];
+	InpSym=as;
 	s++;
 	x++;
-
 }
 
 void subforadd()//加法生成式归约子程序
