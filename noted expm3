@@ -159,18 +159,18 @@ void Octa(FILE *fp,FILE *fw);	//识别八进制函数
 int HandleOtherWord(void);
 int HandleError(void);
 
-char valuesta[MAX][10];
-int idxofv=0;
-typedef struct {
+char valuesta[MAX][10];		//变量值及常数栈，以字符串形式存储
+int idxofv=0;				//index of valuesta
+typedef struct {			//结构体，用于存储变量和中间结果的名称和值
 				char name[MAX];
                 char val[MAX];
 				} vaStr;
-vaStr ids[MAX];
-int idxofid=0;
-vaStr results[MAX];
-int idxofres=0; 
+vaStr ids[MAX];		//变量栈
+int idxofid=0;		//index of ids
+vaStr results[MAX];	//中间结果栈
+int idxofres=0;		//index of results
 int endflag=100;
-int lookupforid();
+//int lookupforid();//查变量表函数，由于个人能力有限，未能完成，本程序目前无法实现变量查表功能
 int c=0;
 
 void controller(FILE *fp,FILE *ft,FILE *fw);	//驱动程序
@@ -180,12 +180,12 @@ void act(int k);								//归约出栈
 void change(int x,int y);						//输出符号栈
 void word(FILE *fp,FILE *fw);					//词法分析
 void readandputall(FILE *fp,FILE *ft);			//输出文件中剩余串
-void subforadd();
-void subformin();
-void subformul();
-void subfordif();
-char res[5];
-int inr='1';
+void subforadd();	//加法生成式归约子程序
+void subformin();	//减法生成式归约子程序
+void subformul();	//乘法生成式归约子程序
+void subfordif();	//除法生成式归约子程序
+char res[5];		//中间结果暂存字符串
+int inr='1';		//用于生成结果名字，结果名字形如R1，R2等
 
 void main()
 {
@@ -195,22 +195,22 @@ void main()
 	stackx[0]=7;//#
 	x++;
 	char fir;
-	while ((fir = fgetc(p)) != EOF)
+	while ((fir = fgetc(p)) != EOF)	//以;为语句之间的分隔符，每条语句调用一次语义分析
 	{
 		counter=1;
-		memset(valuesta,NULL, sizeof(valuesta));
+		memset(valuesta,NULL, sizeof(valuesta));//初始化各个栈
 		memset(stacks,'\0', sizeof(stacks));
 		memset(stackx,'\0',sizeof(stacks));
 		memset(as,'\0', sizeof(as));
-		printf("\n步骤\t\t符号栈\t\t剩余串\n");//表头
+		printf("\n步骤\t\t符号栈\t\t剩余串\n");//打印表头
 		fseek(p,-1,1);
 		word(p,w);
 		strcpy(ids[idxofid].name,TOKEN);	
 		fgetc(p);
 		printf("(EQ, )\n");
 		controller(p,t,w);c++;
-		strcpy(ids[idxofid].val,valuesta[0]);
-		printf("四元式：( = , %s , 0 , %s )\n",res,ids[idxofid].name);
+		strcpy(ids[idxofid].val,valuesta[idxofv-1]);
+		printf("四元式：( = , %s , 0 , %s )\n",ids[idxofid].val,ids[idxofid].name);
 		idxofid++;
 	}
 	fclose(p);
@@ -432,8 +432,6 @@ int LEX(FILE *fp,FILE *fw,char cha)
 	while (CurrentState != EndState)
 	{
 		ch = GetChar(j);
-		//ICON=0;
-		//FCON=0;
 		EXECUTE(CurrentState, ch,fw);
 		j++;
 	}
@@ -521,9 +519,6 @@ void Octa(FILE *fp,FILE *fw)		//识别八进制符号
 
 void controller(FILE *fp,FILE *ft,FILE *fw)		//LR分析表驱动程序
 {	
-	//memset(stacks,'\0', sizeof(stacks));
-	//memset(stackx,'\0', sizeof(stackx));
-	//memset(as,'\0', sizeof(as));
 	ef=100;
 	stacks[s]=0;
 	TopStat=stacks[s];
@@ -556,7 +551,6 @@ void controller(FILE *fp,FILE *ft,FILE *fw)		//LR分析表驱动程序
 				}
 	}
 	if(ef==1) printf("输入串有误，分析失败\n");
-	//else printf("Succeed!\n");//accept();
 }
 
 void push()//进栈
@@ -589,7 +583,7 @@ void act(int k)//归约
 		case 8:len=1; x-=len; stackx[x]=10;break;		//
 	}		
 
-	for(int j=1;j<=len;j++)
+	for(int j=1;j<=len;j++)//出栈
 	{
 		stacks[s-len]=0;
 	}
@@ -602,7 +596,7 @@ void act(int k)//归约
 
 }
 
-void subforadd()
+void subforadd()//加法生成式归约子程序
 {
 	res[1]=inr; 
 	inr++; 
@@ -618,7 +612,7 @@ void subforadd()
 	idxofv-=1; 
 }
 
-void subformin()
+void subformin()//减法生成式归约子程序
 {
 	res[1]=inr; 
 	inr++; 
@@ -634,7 +628,7 @@ void subformin()
 	idxofv-=1; 
 }
 
-void subformul()
+void subformul()//乘法生成式归约子程序
 {
 	res[1]=inr; 
 	inr++; 
@@ -650,7 +644,7 @@ void subformul()
 	idxofv-=1; 
 }
 
-void subfordif()
+void subfordif()//除法生成式归约子程序
 {
 	res[1]=inr; 
 	inr++; 
