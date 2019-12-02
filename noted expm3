@@ -5,7 +5,7 @@
 #include<cstdlib>
 
 #define LETTER	0
-#define DIGIT	1
+#define DIGIT	1//x3=x1*1+(abc+2);x2=x3/20E-2;
 #define POINT	2
 #define OTHER	3
 #define POWER	4
@@ -120,7 +120,7 @@ char *stri;
 # define S14 14
 # define S15 15
 
-#define MAX 50
+#define MAX 60
 /* 建立保留字表 */
 #define MAX_KEY_NUMBER 20  /*关键字的数量*/
 #define KEY_WORD_END "waiting for your expanding"  /*关键字结束标记*/
@@ -231,10 +231,11 @@ int lookupforid()//查变量表函数，如变量存在，返回在变量栈中�
 void readandputall(FILE *fp,FILE *ft)		//输出文件中剩余串
 {
 	char getw;
-	int fc;
-	fc=0;		//文件字符计数,退指针用file char counter
+	int fc;		//我曾尝试过同时在一个文件中定义两个读指针，使用后发现两个指针的位置是同步的，故写此函数使用一个指针进行分析和输出
+	fc=0;		//文件字符计数,记录字符数，退指针用 file char counter
 	if(rf==1&&as!=7) fseek(fp,-1,1);	//输出已经进行词法分析但未进入符号栈的字符
 	while ((getw = fgetc(fp)) != EOF) {
+		if(getw==10) fc++;		//如文件中有换行符（ASCII码=10），占两个文件指针位置，每出现一次需特地多退一位
 		arr[ai]=getw;
 		ai++;
 		fc++;
@@ -256,7 +257,7 @@ void word(FILE *fp,FILE *fw)//词法分析函数，一次读一个单词
 	wf=0;
 	char fir;
 	while ((fir = fgetc(fp)) != ';') {
-		if (fir == ' '|| fir == '\r'|| fir == '\t'|| fir == '\n') continue; else if(fir!='#') fseek(fp,-1,1);
+		if (fir == ' '|| fir == '\r'|| fir == '\t'|| fir == '\n'||fir == 10) continue; else if(fir!='#') fseek(fp,-1,1);
 		if(fir=='#') //删除以#开头以#结尾的注释
 		{
 			while(1)
@@ -458,6 +459,22 @@ int lookup(char *token)
 
 void wordforids(FILE *fp,FILE *fw)
 {
+	char fir;
+	while (1) {
+		fir = fgetc(fp);
+		if (fir == ' '|| fir == '\r'|| fir == '\t'|| fir == '\n'||fir == 10) continue; else if(fir!='#') {fseek(fp,-1,1);break;}
+		if(fir=='#') //删除以#开头以#结尾的注释
+		{
+			while(1)
+			{
+				fir = fgetc(fp);
+				if(fir=='#') 
+					break;
+			}
+			continue;//应回到循环最开始处，非继续执行
+		}
+			break;
+	}//while
 	char ch; int i, c;
 	ch = fgetc(fp);
 	if (ch>='a'&&ch<='z')  /*it must be a identifer!*/
@@ -471,6 +488,21 @@ void wordforids(FILE *fp,FILE *fw)
 		TOKEN[i] = '\0';
 		if(ch!=EOF)	fseek(fp, -1, 1); /* retract*/
 	}
+	while (1) {
+		fir = fgetc(fp);
+		if (fir == ' '|| fir == '\r'|| fir == '\t'|| fir == '\n'||fir == 10) continue; else {fseek(fp,-1,1); break;}
+		if(fir=='#') //删除以#开头以#结尾的注释
+		{
+			while(1)
+			{
+				fir = fgetc(fp);
+				if(fir=='#') 
+					break;
+			}
+			continue;//应回到循环最开始处，非继续执行
+		}
+			break;
+	}//while
 }
 
 void out(int a,char*wordin)		//输出词法分析结果
